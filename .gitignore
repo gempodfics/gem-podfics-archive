@@ -20,5 +20,11 @@ pnpm-debug.log*
 # macOS-specific files
 .DS_Store
 
+# Local reference files — not part of the site build
+Google Stitch Mock Files/
+Stitch Interface Screens/
+References for design inspiration/
+CLAUDE.md
+
 # jetbrains setting folder
 .idea/

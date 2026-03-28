@@ -1,17 +1,11 @@
 ---
-
+import Layout from '../layouts/Layout.astro';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title="Gem Podfics">
+  <main style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:1rem;">
+    <h1 style="color:var(--accent-pink);font-size:2.5rem;font-weight:bold;">Gem Podfics</h1>
+    <p style="color:var(--text-secondary);font-size:1.1rem;">The voice of Lost Narratives.</p>
+    <p style="color:var(--text-muted);font-size:0.9rem;">Site coming soon.</p>
+  </main>
+</Layout>

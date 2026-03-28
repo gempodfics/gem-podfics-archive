@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+:root {
+  --bg-primary: #0E0A14;
+  --bg-surface: #1A1028;
+  --bg-elevated: #251640;
+  --accent-pink: #E8588A;
+  --accent-pink-hover: #F07AA8;
+  --text-primary: #FFFFFF;
+  --text-secondary: #C4AEDD;
+  --text-muted: #8B6FA8;
+
+  /* Rating badge colors */
+  --rating-general: #6FCF97;
+  --rating-teen: #F2C94C;
+  --rating-mature: #F2994A;
+  --rating-explicit: #EB5757;
+}
+
+html {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--bg-primary);
+}
