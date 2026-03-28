@@ -3,9 +3,44 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="Gem Podfics">
-  <main style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:1rem;">
-    <h1 style="color:var(--accent-pink);font-size:2.5rem;font-weight:bold;">Gem Podfics</h1>
-    <p style="color:var(--text-secondary);font-size:1.1rem;">The voice of Lost Narratives.</p>
-    <p style="color:var(--text-muted);font-size:0.9rem;">Site coming soon.</p>
+  <main class="home">
+    <section class="hero">
+      <h1 class="hero-tagline">Gem <em>Podfics.</em></h1>
+      <p class="hero-description">
+        My personal audio archive fueled by hyperfixations. Enjoy mostly queer podfics, fandom-inspired ASMR, and audio gems that are spicy, sweet, and guaranteed to keep you up in more ways than one.
+      </p>
+    </section>
   </main>
 </Layout>
+
+<style>
+  .home {
+    padding: 3rem 2rem;
+    max-width: 900px;
+  }
+
+  .hero {
+    margin-bottom: 4rem;
+  }
+
+  .hero-tagline {
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--text-primary);
+    margin: 0 0 1.25rem;
+  }
+
+  .hero-tagline em {
+    color: var(--accent-pink);
+    font-style: italic;
+  }
+
+  .hero-description {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    max-width: 540px;
+    margin: 0;
+  }
+</style>
