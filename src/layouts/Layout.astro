@@ -1,11 +1,13 @@
 ---
 import '../styles/global.css';
+import Sidebar from '../components/nav/Sidebar.astro';
 
 interface Props {
   title?: string;
+  fullWidth?: boolean;
 }
 
-const { title = 'Gem Podfics' } = Astro.props;
+const { title = 'Gem Podfics', fullWidth = false } = Astro.props;
 ---
 
 <!doctype html>
@@ -18,6 +20,23 @@ const { title = 'Gem Podfics' } = Astro.props;
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
   <body>
-    <slot />
+    <Sidebar />
+    <main class={`page-content${fullWidth ? ' full-width' : ''}`}>
+      <slot />
+    </main>
   </body>
 </html>
+
+<style>
+  .page-content {
+    padding-top: 56px;
+    min-height: 100vh;
+  }
+
+  @media (min-width: 768px) {
+    .page-content {
+      margin-left: 200px;
+      padding-top: 0;
+    }
+  }
+</style>

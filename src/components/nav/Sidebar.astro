@@ -1,0 +1,306 @@
+---
+const navItems = [
+  { label: 'Home', href: '/', icon: 'home' },
+  { label: 'One Shots', href: '/one-shots', icon: 'one-shot' },
+  { label: 'Multi-Chapter', href: '/multi-chapter', icon: 'multi' },
+  { label: 'ASMR', href: '/asmr', icon: 'asmr' },
+];
+
+const socials = [
+  { label: 'Tumblr', href: 'https://tumblr.com', icon: 'tumblr' },
+  { label: 'AO3', href: 'https://archiveofourown.org', icon: 'ao3' },
+  { label: 'TikTok', href: 'https://tiktok.com', icon: 'tiktok' },
+  { label: 'Instagram', href: 'https://instagram.com', icon: 'instagram' },
+];
+
+const currentPath = Astro.url.pathname;
+---
+
+<!-- Desktop Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <a href="/">Gem Podfics</a>
+  </div>
+
+  <nav class="sidebar-nav">
+    {navItems.map(item => (
+      <a
+        href={item.href}
+        class={`nav-item ${currentPath === item.href || (item.href !== '/' && currentPath.startsWith(item.href)) ? 'active' : ''}`}
+      >
+        <span class="nav-icon">
+          {item.icon === 'home' && (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+          )}
+          {item.icon === 'one-shot' && (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+          )}
+          {item.icon === 'multi' && (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/></svg>
+          )}
+          {item.icon === 'asmr' && (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1c-4.97 0-9 4.03-9 9v7c0 1.66 1.34 3 3 3h3v-8H5v-2c0-3.87 3.13-7 7-7s7 3.13 7 7v2h-4v8h3c1.66 0 3-1.34 3-3v-7c0-4.97-4.03-9-9-9z"/></svg>
+          )}
+        </span>
+        <span class="nav-label">{item.label}</span>
+      </a>
+    ))}
+  </nav>
+
+  <div class="sidebar-socials">
+    {socials.map(s => (
+      <a href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label} class="social-icon">
+        {s.icon === 'tumblr' && (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M14.563 24c-5.093 0-7.031-3.756-7.031-6.411V9.747H5.116V6.648c3.63-1.313 4.512-4.596 4.71-6.469C9.84.051 9.941 0 9.999 0h3.517v6.114h4.801v3.633h-4.82v7.47c.016 1.001.375 2.371 2.207 2.371h.09c.631-.02 1.486-.205 1.936-.419l1.156 3.425c-.436.636-2.4 1.374-4.304 1.406z"/></svg>
+        )}
+        {s.icon === 'ao3' && (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M11.959.006C5.368.006.006 5.368.006 11.96c0 6.59 5.362 11.952 11.953 11.952 6.59 0 11.953-5.362 11.953-11.953C23.912 5.368 18.55.006 11.96.006zM8.415 16.36c-.19.33-.49.495-.9.495-.41 0-.72-.165-.93-.495L3.72 11.46c-.21-.33-.21-.66 0-.99.21-.33.52-.495.93-.495.41 0 .71.165.9.495l2.865 4.95 5.34-9.24c.19-.33.49-.495.9-.495.41 0 .72.165.93.495.21.33.21.66 0 .99z"/></svg>
+        )}
+        {s.icon === 'tiktok' && (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.77a4.85 4.85 0 01-1.01-.08z"/></svg>
+        )}
+        {s.icon === 'instagram' && (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+        )}
+      </a>
+    ))}
+  </div>
+</aside>
+
+<!-- Mobile Header -->
+<header class="mobile-header">
+  <a href="/" class="mobile-logo">Gem Podfics</a>
+  <button class="hamburger" id="hamburger" aria-label="Open menu">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+  </button>
+</header>
+
+<!-- Mobile Drawer -->
+<div class="mobile-drawer" id="mobile-drawer">
+  <button class="drawer-close" id="drawer-close" aria-label="Close menu">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+  </button>
+  <nav class="drawer-nav">
+    {navItems.map(item => (
+      <a href={item.href} class={`drawer-item ${currentPath === item.href || (item.href !== '/' && currentPath.startsWith(item.href)) ? 'active' : ''}`}>
+        {item.label}
+      </a>
+    ))}
+  </nav>
+  <div class="drawer-socials">
+    {socials.map(s => (
+      <a href={s.href} target="_blank" rel="noopener noreferrer" class="social-icon">{s.label}</a>
+    ))}
+  </div>
+</div>
+
+<div class="drawer-overlay" id="drawer-overlay"></div>
+
+<style>
+  /* ── Sidebar (desktop) ── */
+  .sidebar {
+    display: none;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 200px;
+    height: 100vh;
+    background: var(--bg-surface);
+    padding: 2rem 1.25rem;
+    z-index: 100;
+    border-right: 1px solid var(--bg-elevated);
+  }
+
+  @media (min-width: 768px) {
+    .sidebar { display: flex; }
+    .mobile-header { display: none; }
+  }
+
+  .sidebar-logo a {
+    color: var(--accent-pink);
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    display: block;
+    margin-bottom: 2.5rem;
+  }
+
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 6px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: color 0.15s, background 0.15s;
+  }
+
+  .nav-item:hover {
+    color: var(--text-primary);
+    background: var(--bg-elevated);
+  }
+
+  .nav-item.active {
+    color: var(--accent-pink);
+    background: var(--bg-elevated);
+  }
+
+  .nav-icon { display: flex; align-items: center; flex-shrink: 0; }
+
+  .sidebar-socials {
+    display: flex;
+    gap: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--bg-elevated);
+  }
+
+  .social-icon {
+    color: var(--text-muted);
+    transition: color 0.15s;
+    display: flex;
+    align-items: center;
+  }
+
+  .social-icon:hover { color: var(--accent-pink); }
+
+  /* ── Mobile Header ── */
+  .mobile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    background: var(--bg-surface);
+    padding: 0 1.25rem;
+    z-index: 100;
+    border-bottom: 1px solid var(--bg-elevated);
+  }
+
+  .mobile-logo {
+    color: var(--accent-pink);
+    font-size: 1rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .hamburger {
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+  }
+
+  /* ── Mobile Drawer ── */
+  .mobile-drawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 260px;
+    height: 100vh;
+    background: var(--bg-surface);
+    z-index: 200;
+    padding: 1.5rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+  }
+
+  .mobile-drawer.open { transform: translateX(0); }
+
+  .drawer-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 199;
+  }
+
+  .drawer-overlay.open { display: block; }
+
+  .drawer-close {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    align-self: flex-end;
+    padding: 0;
+    display: flex;
+  }
+
+  .drawer-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .drawer-item {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.75rem 0.5rem;
+    border-radius: 6px;
+    transition: color 0.15s, background 0.15s;
+  }
+
+  .drawer-item:hover, .drawer-item.active {
+    color: var(--accent-pink);
+    background: var(--bg-elevated);
+  }
+
+  .drawer-socials {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: auto;
+  }
+
+  .drawer-socials .social-icon {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+  }
+</style>
+
+<script>
+  const hamburger = document.getElementById('hamburger');
+  const drawer = document.getElementById('mobile-drawer');
+  const overlay = document.getElementById('drawer-overlay');
+  const close = document.getElementById('drawer-close');
+
+  function openDrawer() {
+    drawer?.classList.add('open');
+    overlay?.classList.add('open');
+  }
+
+  function closeDrawer() {
+    drawer?.classList.remove('open');
+    overlay?.classList.remove('open');
+  }
+
+  hamburger?.addEventListener('click', openDrawer);
+  close?.addEventListener('click', closeDrawer);
+  overlay?.addEventListener('click', closeDrawer);
+</script>
