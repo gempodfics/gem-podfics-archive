@@ -79,18 +79,11 @@ import Layout from '../layouts/Layout.astro';
     max-width: 42rem;
   }
 
-  /* Image: hidden on mobile, shown on desktop */
   .hero-image {
-    display: none;
+    display: block;
     aspect-ratio: 1 / 1;
     border-radius: 1.5rem;
     overflow: hidden;
-  }
-
-  @media (min-width: 1024px) {
-    .hero-image {
-      display: block;
-    }
   }
 
   .hero-img {

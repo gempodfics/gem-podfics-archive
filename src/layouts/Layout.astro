@@ -29,7 +29,7 @@ const { title = 'Gem Podfics', fullWidth = false } = Astro.props;
 
 <style>
   .page-content {
-    padding-top: 56px;
+    padding-top: 52px;
     min-height: 100vh;
   }
 
@@ -37,6 +37,25 @@ const { title = 'Gem Podfics', fullWidth = false } = Astro.props;
     .page-content {
       margin-left: 200px;
       padding-top: 0;
+      transition: margin-left 0.25s ease;
     }
   }
 </style>
+
+<script>
+  function applyCollapsedMargin() {
+    const content = document.querySelector('.page-content') as HTMLElement | null;
+    if (!content) return;
+    if (window.innerWidth >= 768 && localStorage.getItem('sidebar-collapsed') === 'true') {
+      content.style.marginLeft = '64px';
+    } else if (window.innerWidth >= 768) {
+      content.style.marginLeft = '200px';
+    }
+  }
+
+  applyCollapsedMargin();
+
+  document.getElementById('sidebar-toggle')?.addEventListener('click', () => {
+    setTimeout(applyCollapsedMargin, 0);
+  });
+</script>
