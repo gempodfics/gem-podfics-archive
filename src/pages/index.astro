@@ -3,34 +3,44 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="Gem Podfics">
-  <main class="coming-soon">
-    <h1>Gem Podfics</h1>
-    <p>Coming Soon</p>
+  <main class="home">
+    <section class="hero">
+      <h1 class="hero-tagline">Gem <em>Podfics.</em></h1>
+      <p class="hero-description">
+        My personal audio archive fueled by hyperfixations. Enjoy mostly queer podfics, fandom-inspired ASMR, and audio gems that are spicy, sweet, and guaranteed to keep you up in more ways than one.
+      </p>
+    </section>
   </main>
 </Layout>
 
 <style>
-  .coming-soon {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    gap: 0.75rem;
-    text-align: center;
+  .home {
+    padding: 3rem 2rem;
+    max-width: 900px;
   }
 
-  h1 {
-    color: var(--accent-pink);
-    font-size: 2.5rem;
+  .hero {
+    margin-bottom: 4rem;
+  }
+
+  .hero-tagline {
+    font-size: clamp(2.5rem, 6vw, 4rem);
     font-weight: 800;
-    margin: 0;
+    line-height: 1.1;
+    color: var(--text-primary);
+    margin: 0 0 1.25rem;
   }
 
-  p {
+  .hero-tagline em {
+    color: var(--accent-pink);
+    font-style: italic;
+  }
+
+  .hero-description {
+    font-size: 1rem;
+    line-height: 1.7;
     color: var(--text-secondary);
-    font-size: 1.1rem;
+    max-width: 540px;
     margin: 0;
-    letter-spacing: 0.05em;
   }
 </style>
