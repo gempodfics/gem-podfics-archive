@@ -76,8 +76,8 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
           {p.writtenBy && (
             <span class="credit-item">
               Written by{' '}
-              {p.ao3Url
-                ? <a href={p.ao3Url} target="_blank" rel="noopener" class="credit-link">{p.writtenBy}</a>
+              {p.writtenByUrl
+                ? <a href={p.writtenByUrl} target="_blank" rel="noopener" class="credit-link">{p.writtenBy}</a>
                 : <span class="credit-name">{p.writtenBy}</span>
               }
             </span>
@@ -258,6 +258,15 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
               <p class="sheet-summary-meta">
                 {[p.fandoms.join(' · '), p.dynamic].filter(Boolean).join(' · ')}
               </p>
+              {p.writtenBy && (
+                <p class="sheet-summary-written">
+                  Written by{' '}
+                  {p.writtenByUrl
+                    ? <a href={p.writtenByUrl} target="_blank" rel="noopener" class="credit-link">{p.writtenBy}</a>
+                    : <span class="credit-name">{p.writtenBy}</span>
+                  }
+                </p>
+              )}
               <div class="sheet-summary-body">
                 <p class="summary-text" id="sheet-summary-text">{p.summary}</p>
                 <button class="see-more-btn" id="sheet-see-more-btn" aria-expanded="false">See more</button>
@@ -301,8 +310,8 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
           {p.writtenBy && (
             <span class="credit-item">
               Written by{' '}
-              {p.ao3Url
-                ? <a href={p.ao3Url} target="_blank" rel="noopener" class="credit-link">{p.writtenBy}</a>
+              {p.writtenByUrl
+                ? <a href={p.writtenByUrl} target="_blank" rel="noopener" class="credit-link">{p.writtenBy}</a>
                 : <span class="credit-name">{p.writtenBy}</span>
               }
             </span>
@@ -771,7 +780,7 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
   .summary-body { display: flex; flex-direction: column; gap: 0.5rem; }
   .summary-text {
     font-size: 0.9rem; line-height: 1.65; color: var(--text-secondary); margin: 0;
-    display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
   }
   .summary-text.expanded { display: block; overflow: visible; -webkit-line-clamp: unset; }
   .see-more-btn {
@@ -865,9 +874,12 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
   .sheet-summary-meta {
     font-size: 0.82rem; color: var(--text-muted); margin: 0;
   }
+  .sheet-summary-written { font-size: 0.82rem; color: var(--text-muted); margin: 0; }
   .sheet-summary-body { display: flex; flex-direction: column; gap: 0.5rem; }
   .sheet-summary-card .summary-text { -webkit-line-clamp: 3; }
   .sheet-summary-card .see-more-btn { display: none; }
+  /* Content page summary see-more also hidden until JS confirms overflow */
+  #mobile-see-more-btn { display: none; }
 
   /* ══════════════════════════════════════════════
      MOBILE LAYOUT  (< 768px)
@@ -1270,14 +1282,21 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
   window.addEventListener('resize', initMarquee);
 
   // ── See More toggles ──
-  // State 1 (mobile content page) summary
+  // State 1 (mobile content page) summary — only show button if text overflows
   const mobileSummaryText = document.getElementById('mobile-summary-text');
   const mobileSeeMoreBtn  = document.getElementById('mobile-see-more-btn');
-  mobileSeeMoreBtn?.addEventListener('click', () => {
-    const expanded = mobileSummaryText.classList.toggle('expanded');
-    mobileSeeMoreBtn.textContent = expanded ? 'See less' : 'See more';
-    mobileSeeMoreBtn.setAttribute('aria-expanded', expanded);
-  });
+  if (mobileSummaryText && mobileSeeMoreBtn) {
+    requestAnimationFrame(() => {
+      if (mobileSummaryText.scrollHeight > mobileSummaryText.clientHeight + 2) {
+        mobileSeeMoreBtn.style.display = '';
+      }
+    });
+    mobileSeeMoreBtn.addEventListener('click', () => {
+      const expanded = mobileSummaryText.classList.toggle('expanded');
+      mobileSeeMoreBtn.textContent = expanded ? 'See less' : 'See more';
+      mobileSeeMoreBtn.setAttribute('aria-expanded', expanded);
+    });
+  }
   // Player sheet summary
   const sheetSummaryText = document.getElementById('sheet-summary-text');
   const sheetSeeMoreBtn  = document.getElementById('sheet-see-more-btn');

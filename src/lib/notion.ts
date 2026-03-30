@@ -117,12 +117,16 @@ function mapPodfic(page: any) {
   function url(prop: any) {
     return prop?.url ?? "";
   }
+  function richTextUrl(prop: any): string {
+    return prop?.rich_text?.[0]?.href ?? "";
+  }
 
   return {
     id: page.id,
     createdTime: page.created_time ?? "",
     title: text(props["Podfic Title"]),
     writtenBy: text(props["Written By"]),
+    writtenByUrl: richTextUrl(props["Written By"]),
     type: select(props["Type"]) as "One Shot" | "Multi Chapter" | "ASMR",
     fandoms: multiSelect(props["Fandoms"]),
     dynamic: select(props["Dynamic"]),
