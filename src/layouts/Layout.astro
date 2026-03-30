@@ -1,13 +1,14 @@
 ---
 import '../styles/global.css';
-import Sidebar from '../components/nav/Sidebar.astro';
+import TopBar from '../components/nav/TopBar.astro';
 
 interface Props {
   title?: string;
-  fullWidth?: boolean;
+  variant?: 'home' | 'collection';
 }
 
-const { title = 'Gem Podfics', fullWidth = false } = Astro.props;
+const { title = 'Gem Podfics', variant = 'home' } = Astro.props;
+const isCollection = variant === 'collection';
 ---
 
 <!doctype html>
@@ -20,42 +21,121 @@ const { title = 'Gem Podfics', fullWidth = false } = Astro.props;
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
   <body>
-    <Sidebar />
-    <main class={`page-content${fullWidth ? ' full-width' : ''}`}>
-      <slot />
-    </main>
+    <TopBar />
+
+    {isCollection ? (
+      <>
+        <aside class="filter-sidebar" id="filter-sidebar">
+          <slot name="sidebar" />
+        </aside>
+        <div class="filter-backdrop" id="filter-backdrop"></div>
+        <main class="collection-content">
+          <slot />
+        </main>
+      </>
+    ) : (
+      <main class="home-content">
+        <slot />
+      </main>
+    )}
   </body>
 </html>
 
 <style>
-  .page-content {
+  /* ── Base: clear the fixed top bar ── */
+  .home-content,
+  .collection-content {
     padding-top: 52px;
     min-height: 100vh;
   }
 
+  /* ── Filter sidebar — mobile: hidden (slides up when open) ── */
+  .filter-sidebar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-height: 82vh;
+    overflow-y: auto;
+    background: var(--bg-surface);
+    border-top: 2px solid var(--bg-elevated);
+    border-radius: 1.25rem 1.25rem 0 0;
+    z-index: 200;
+    padding: 1.25rem 1.25rem 2.5rem;
+    /* start off-screen */
+    transform: translateY(100%);
+    visibility: hidden;
+    transition: transform 0.3s ease, visibility 0.3s ease;
+  }
+
+  .filter-sidebar.open {
+    transform: translateY(0);
+    visibility: visible;
+  }
+
+  /* ── Backdrop (mobile only) ── */
+  .filter-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 190;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .filter-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* ── Desktop: persistent left sidebar ── */
   @media (min-width: 768px) {
-    .page-content {
-      margin-left: 200px;
-      padding-top: 0;
-      transition: margin-left 0.25s ease;
+    .filter-sidebar {
+      top: 52px;
+      bottom: 0;
+      left: 0;
+      right: auto;
+      width: 260px;
+      max-height: none;
+      border-top: none;
+      border-right: 1px solid var(--bg-elevated);
+      border-radius: 0;
+      padding: 1.75rem 1.25rem 3rem;
+      transform: none;
+      visibility: visible;
+      transition: none;
+    }
+
+    .filter-backdrop {
+      display: none !important;
+    }
+
+    .collection-content {
+      margin-left: 260px;
     }
   }
 </style>
 
 <script>
-  function applyCollapsedMargin() {
-    const content = document.querySelector('.page-content') as HTMLElement | null;
-    if (!content) return;
-    if (window.innerWidth >= 768 && localStorage.getItem('sidebar-collapsed') === 'true') {
-      content.style.marginLeft = '64px';
-    } else if (window.innerWidth >= 768) {
-      content.style.marginLeft = '200px';
-    }
+  const sidebar = document.getElementById('filter-sidebar');
+  const backdrop = document.getElementById('filter-backdrop');
+  const openBtn = document.getElementById('filter-open-btn');
+  const closeBtn = document.getElementById('filter-close-btn');
+
+  function openFilters() {
+    sidebar?.classList.add('open');
+    backdrop?.classList.add('open');
+    document.body.style.overflow = 'hidden';
   }
 
-  applyCollapsedMargin();
+  function closeFilters() {
+    sidebar?.classList.remove('open');
+    backdrop?.classList.remove('open');
+    document.body.style.overflow = '';
+  }
 
-  document.getElementById('sidebar-toggle')?.addEventListener('click', () => {
-    setTimeout(applyCollapsedMargin, 0);
-  });
+  openBtn?.addEventListener('click', openFilters);
+  closeBtn?.addEventListener('click', closeFilters);
+  backdrop?.addEventListener('click', closeFilters);
 </script>

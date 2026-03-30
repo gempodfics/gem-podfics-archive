@@ -1,19 +1,217 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { getRecommendations, getCommissionedArt, formatDuration } from '../lib/notion';
+
+const recs = await getRecommendations();
+const commissionedArt = await getCommissionedArt();
+
+// These two artworks have a black border baked in — scale up slightly to fill the record
+const ZOOM_IDS = new Set([
+  '330bce89a9a481ca8371e09d668283ec', // Turning Point
+  '330bce89a9a48150b15afa4693a136b9', // If You Don't Know How To Blow, Blow For Me
+]);
+const needsZoom = (id: string) => ZOOM_IDS.has(id.replace(/-/g, ''));
 ---
 
-<Layout title="Gem Podfics">
+<Layout title="Gem Podfics" variant="home">
   <main class="home">
     <section class="hero">
       <div class="hero-text">
         <h1 class="hero-tagline">Gem <em>Podfics.</em></h1>
         <p class="hero-description">
-          My personal audio archive fueled by hyperfixations. Enjoy mostly queer podfics, fandom-inspired ASMR, and audio gems that are spicy, sweet, and guaranteed to keep you up in more ways than one.
+          My personal audio archive fueled by hyperfixations. Enjoy mostly queer podfics, fandom-inspired ASMR, and other audio gems that are spicy, sweet, and guaranteed to keep you up in more ways than one.
         </p>
+        <div class="hero-socials">
+          <a href="https://www.tumblr.com/blog/gemaesteria" target="_blank" rel="noopener noreferrer" aria-label="Tumblr" class="hero-social-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M14.563 24c-5.093 0-7.031-3.756-7.031-6.411V9.747H5.116V6.648c3.63-1.313 4.512-4.596 4.71-6.469C9.84.051 9.941 0 9.999 0h3.517v6.114h4.801v3.633h-4.82v7.47c.016 1.001.375 2.371 2.207 2.371h.09c.631-.02 1.486-.205 1.936-.419l1.156 3.425c-.436.636-2.4 1.374-4.156 1.404h-.178l.011.002z"/>
+            </svg>
+            <span>Tumblr</span>
+          </a>
+          <a href="https://archiveofourown.org/users/Danmei_Podfics_With_Gem/works" target="_blank" rel="noopener noreferrer" aria-label="AO3" class="hero-social-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M18.417 9.883c-.687 1.116-1.823 1.722-2.99 1.855-4.227.484-6.047-4.149-3.469-6.728 2.31-2.31 7.082-.9 7.005 2.899-.011.611-.166 1.357-.546 1.974zm-6.459-2.029c.142 3.596 4.764 3.682 5.687 1.054.815-2.324-1.12-4.199-3.19-3.897-1.523.221-2.553 1.411-2.497 2.843zM23.123 6.003c.284-.131.697-.412.837-.246.211.251-.459.475-.748.664-.918.6-1.731 1.227-2.477 2.049-.959 1.059-1.944 2.376-2.55 3.818.618.032 3.021.157 3.6 1.481.464 1.062-.387 2.156-1.32 2.627.663.414 1.81.945 1.745 1.898-.158 2.343-3.696 2.241-5.178.695-.244-.289-.358-.482-.25-.578.151-.134.326.186.676.476.225.187.377.251.572.354 1.301.683 3.339.403 3.478-.792.064-.554-.664-.955-1.217-1.204-.498-.224-1.514-.386-1.494-.952.02-.554.524-.45 1.03-.65.55-.217 1.004-.901 1.003-1.116-.005-.905-2.062-.888-3.221-.92-.275.606-.471 1.226-.692 2.158-.139.583-.151 1.897-.748 2.029-.737.164-1.014-.477-1.455-.991-.594-.69-1.436-1.637-1.942-2.223-3.033 1.002-5.392 2.091-8.256 3.712-1.311.742-2.063 1.59-2.545 1.354-.396-.194-.339-.633-.147-.887.393-.521.927-1.225 1.396-1.888.6-.849 1.054-1.667 1.373-2.445.692-1.688 1.23-4.72 1.475-5.859.088-.412.309-.348.322-.148.027.419-.237 2.047-.29 2.383-.436 2.781-.772 4.41-2.009 6.349 2.196-1.358 4.805-3.019 7.592-3.955C8.846 9.936 5.847 6.85 1.676 4.905 1.037 4.542 0 4.464 0 4.22c0-.271.781-.06 1.043.007 2.383.596 4.817 2.141 6.601 3.444 2.145 1.567 4.714 3.967 5.679 5.081.657-.226 2.286-.457 3.696-.496.752-1.58 2.55-4.018 4.788-5.442.413-.263.842-.594 1.316-.811zm-8.594 8.071c.423.428.742.934 1.11 1.398.174-.59.405-1.216.643-1.758-.619.082-1.281.203-1.753.36z"/>
+            </svg>
+            <span>AO3</span>
+          </a>
+          <a href="https://tiktok.com/@gem_asteria" target="_blank" rel="noopener noreferrer" aria-label="TikTok" class="hero-social-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
+            </svg>
+            <span>TikTok</span>
+          </a>
+          <a href="https://www.instagram.com/gempodfics/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" class="hero-social-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M7.0301.084c-1.2768.0602-2.1487.264-2.911.5634-.7888.3075-1.4575.72-2.1228 1.3877-.6652.6677-1.075 1.3368-1.3802 2.127-.2954.7638-.4956 1.6365-.552 2.914-.0564 1.2775-.0689 1.6882-.0626 4.947.0062 3.2586.0206 3.6671.0825 4.9473.061 1.2765.264 2.1482.5635 2.9107.308.7889.72 1.4573 1.388 2.1228.6679.6655 1.3365 1.0743 2.1285 1.38.7632.295 1.6361.4961 2.9134.552 1.2773.056 1.6884.069 4.9462.0627 3.2578-.0062 3.668-.0207 4.9478-.0814 1.28-.0607 2.147-.2652 2.9098-.5633.7889-.3086 1.4578-.72 2.1228-1.3881.665-.6682 1.0745-1.3378 1.3795-2.1284.2957-.7632.4966-1.636.552-2.9124.056-1.2809.0692-1.6898.063-4.948-.0063-3.2583-.021-3.6668-.0817-4.9465-.0607-1.2797-.264-2.1487-.5633-2.9117-.3084-.7889-.72-1.4568-1.3876-2.1228C21.2982 1.33 20.628.9208 19.8378.6165 19.074.321 18.2017.1197 16.9244.0645 15.6471.0093 15.236-.005 11.977.0014 8.718.0076 8.31.0215 7.0301.0839m.1402 21.6932c-1.17-.0509-1.8053-.2453-2.2287-.408-.5606-.216-.96-.4771-1.3819-.895-.422-.4178-.6811-.8186-.9-1.378-.1644-.4234-.3624-1.058-.4171-2.228-.0595-1.2645-.072-1.6442-.079-4.848-.007-3.2037.0053-3.583.0607-4.848.05-1.169.2456-1.805.408-2.2282.216-.5613.4762-.96.895-1.3816.4188-.4217.8184-.6814 1.3783-.9003.423-.1651 1.0575-.3614 2.227-.4171 1.2655-.06 1.6447-.072 4.848-.079 3.2033-.007 3.5835.005 4.8495.0608 1.169.0508 1.8053.2445 2.228.408.5608.216.96.4754 1.3816.895.4217.4194.6816.8176.9005 1.3787.1653.4217.3617 1.056.4169 2.2263.0602 1.2655.0739 1.645.0796 4.848.0058 3.203-.0055 3.5834-.061 4.848-.051 1.17-.245 1.8055-.408 2.2294-.216.5604-.4763.96-.8954 1.3814-.419.4215-.8181.6811-1.3783.9-.4224.1649-1.0577.3617-2.2262.4174-1.2656.0595-1.6448.072-4.8493.079-3.2045.007-3.5825-.006-4.848-.0608M16.953 5.5864A1.44 1.44 0 1 0 18.39 4.144a1.44 1.44 0 0 0-1.437 1.4424M5.8385 12.012c.0067 3.4032 2.7706 6.1557 6.173 6.1493 3.4026-.0065 6.157-2.7701 6.1506-6.1733-.0065-3.4032-2.771-6.1565-6.174-6.1498-3.403.0067-6.156 2.771-6.1496 6.1738M8 12.0077a4 4 0 1 1 4.008 3.9921A3.9996 3.9996 0 0 1 8 12.0077"/>
+            </svg>
+            <span>Instagram</span>
+          </a>
+        </div>
       </div>
       <div class="hero-image">
-        <!-- Swap /hero.jpg with your real image when ready -->
-        <img src="/hero.jpg" alt="Gem Podfics hero image" class="hero-img" />
+        <img src="/Hero.PNG" alt="Gem Podfics hero image" class="hero-img" />
+      </div>
+    </section>
+
+    <!-- Gem's Recs -->
+    <section class="recs-section">
+      <div class="section-header recs-header">
+        <div>
+          <h2 class="section-title">Gem's Recs</h2>
+          <div class="section-rule"></div>
+        </div>
+        <div class="recs-arrows">
+          <button class="scroll-arrow" id="recs-prev" aria-label="Scroll left">&#8249;</button>
+          <button class="scroll-arrow" id="recs-next" aria-label="Scroll right">&#8250;</button>
+        </div>
+      </div>
+
+      <div class="recs-row" id="recs-row">
+        {recs.map((rec) => (
+          <a href={`/podfic/${rec.id}`} class="rec-card">
+            <div class="vinyl-wrap">
+              <div class="vinyl-record-peek" aria-hidden="true">
+                <div class="record-center-dot"></div>
+              </div>
+              <div class="sleeve-container">
+                <div class="sleeve-art">
+                  {rec.coverArtUrl ? (
+                    <img src={rec.coverArtUrl} alt={rec.title} class="sleeve-img" />
+                  ) : (
+                    <div class="sleeve-placeholder"></div>
+                  )}
+                </div>
+                <span class={`rating-badge rating-${rec.rating.toLowerCase().replace(/ /g, '-').replace(/&/g, '')}`}>
+                  {rec.rating === 'General Audiences' ? 'G' :
+                   rec.rating === 'Teen and Up' ? 'T' :
+                   rec.rating === 'Mature' ? 'M' : 'E'}
+                </span>
+              </div>
+            </div>
+            <div class="rec-meta">
+              <span class="rec-title">{rec.title}</span>
+              <span class="rec-fandom">{rec.fandoms.join(', ')}{rec.dynamic && ` · ${rec.dynamic}`}</span>
+              {rec.length && (
+                <span class="rec-duration">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
+                  {formatDuration(rec.length)}
+                </span>
+              )}
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <!-- Fandoms Row -->
+    <section class="fandoms-section">
+      <div class="section-header">
+        <h2 class="section-title">Fandoms</h2>
+        <div class="section-rule"></div>
+      </div>
+
+      <div class="fandoms-row">
+        <a href="/fandom/tgcf" class="fandom-card">
+          <div class="fandom-img-wrap">
+            <img src="/TGCF.jpg" alt="Heaven Official's Blessing" class="fandom-img" />
+            <div class="fandom-overlay"></div>
+          </div>
+        </a>
+
+        <a href="/fandom/mdzs" class="fandom-card">
+          <div class="fandom-img-wrap">
+            <img src="/MDZS.jpg" alt="The Grand Master of Demonic Cultivation" class="fandom-img" />
+            <div class="fandom-overlay"></div>
+          </div>
+        </a>
+
+        <a href="/fandom/svsss" class="fandom-card">
+          <div class="fandom-img-wrap">
+            <img src="/SVSSS.jpg" alt="The Scum Villain's Self-Saving System" class="fandom-img" />
+            <div class="fandom-overlay"></div>
+          </div>
+        </a>
+
+        <a href="/fandom/erha" class="fandom-card">
+          <div class="fandom-img-wrap">
+            <img src="/ERHA.jpg" alt="The Husky and His White Cat Shizun" class="fandom-img" />
+            <div class="fandom-overlay"></div>
+          </div>
+        </a>
+
+        <a href="/fandom/wind-breaker" class="fandom-card">
+          <div class="fandom-img-wrap">
+            <img src="/Wind-Breaker.jpg" alt="Wind-Breaker" class="fandom-img" />
+            <div class="fandom-overlay"></div>
+          </div>
+        </a>
+
+        <a href="/fandom/lads" class="fandom-card">
+          <div class="fandom-img-wrap">
+            <img src="/LADs.jpg" alt="Love and Deepspace" class="fandom-img" />
+            <div class="fandom-overlay"></div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Collections Row -->
+    <section class="collections-section">
+      <div class="section-header">
+        <h2 class="section-title">Collections</h2>
+        <div class="section-rule"></div>
+      </div>
+
+      <div class="collections-row">
+        <a href="/one-shots" class="collection-card">
+          <div class="collection-img-wrap">
+            <img src="/One-shot.jpg" alt="One Shot Podfics" class="collection-img" />
+            <div class="collection-overlay"></div>
+          </div>
+          <span class="collection-label">One Shots</span>
+        </a>
+
+        <a href="/multi-chapter" class="collection-card">
+          <div class="collection-img-wrap">
+            <img src="/multi-chapter.jpg" alt="Multi-Chapter Podfics" class="collection-img" />
+            <div class="collection-overlay"></div>
+          </div>
+          <span class="collection-label">Multi-Chapter</span>
+        </a>
+
+        <a href="/asmr" class="collection-card">
+          <div class="collection-img-wrap">
+            <img src="/ASMR.jpg" alt="ASMR Collection" class="collection-img" />
+            <div class="collection-overlay"></div>
+          </div>
+          <span class="collection-label">ASMR</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- Commissioned Story Art -->
+    <section class="art-section">
+      <div class="section-header art-header">
+        <div>
+          <h2 class="section-title">Commissioned Story Art</h2>
+          <div class="section-rule"></div>
+        </div>
+        <div class="art-arrows">
+          <button class="scroll-arrow" id="art-prev" aria-label="Scroll left">&#8249;</button>
+          <button class="scroll-arrow" id="art-next" aria-label="Scroll right">&#8250;</button>
+        </div>
+      </div>
+
+      <div class="art-row" id="art-row">
+        {commissionedArt.map((item) => (
+          <a href={`/podfic/${item.id}`} class="art-card">
+            <div class="art-img-wrap">
+              <img src={item.commissionedArtUrl} alt={item.title} class="art-img" />
+              <div class="art-overlay"></div>
+            </div>
+            <span class="art-credit">Art by: {item.artistCredit}</span>
+          </a>
+        ))}
       </div>
     </section>
   </main>
@@ -47,15 +245,21 @@ import Layout from '../layouts/Layout.astro';
 
   @media (min-width: 1024px) {
     .hero {
-      grid-template-columns: 7fr 5fr;
+      grid-template-columns: 1fr auto;
       gap: 4rem;
+      align-items: center;
+    }
+
+    .hero-image {
+      width: 250px;
+      height: 250px;
     }
   }
 
   .hero-text {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1.5rem;
   }
 
   .hero-tagline {
@@ -79,6 +283,34 @@ import Layout from '../layouts/Layout.astro';
     max-width: 42rem;
   }
 
+  /* ── Hero social icons ── */
+  .hero-socials {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+  }
+
+  .hero-social-link {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.35rem 0.7rem;
+    border-radius: 9999px;
+    border: 1px solid transparent;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+  }
+
+  .hero-social-link:hover {
+    color: var(--accent-pink);
+    border-color: rgba(232, 88, 138, 0.25);
+    background: rgba(232, 88, 138, 0.06);
+  }
+
   .hero-image {
     display: block;
     aspect-ratio: 1 / 1;
@@ -97,4 +329,568 @@ import Layout from '../layouts/Layout.astro';
   .hero-image:hover .hero-img {
     mix-blend-mode: normal;
   }
+
+  /* ── Gem's Recs ── */
+  .recs-section {
+    margin-bottom: 6rem;
+  }
+
+  .recs-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  /* Arrows: hidden on mobile (touch scroll), shown on desktop */
+  .recs-arrows {
+    display: none;
+    gap: 0.5rem;
+  }
+
+  .scroll-arrow {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+
+  .scroll-arrow:hover:not(:disabled) {
+    border-color: var(--accent-pink);
+    color: var(--accent-pink);
+  }
+
+  .scroll-arrow:disabled {
+    opacity: 0.25;
+    cursor: default;
+  }
+
+  .recs-row {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 0.5rem;
+    /* Bleed to viewport edges; no right padding so 3rd card peeks naturally */
+    margin-left: -1.5rem;
+    margin-right: -1.5rem;
+    padding-left: 1.5rem;
+    padding-right: 0;
+  }
+
+  .recs-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .rec-card {
+    flex: 0 0 42vw;
+    max-width: 180px;
+    scroll-snap-align: start;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    position: relative;
+    transition: transform 0.2s ease;
+  }
+
+  .rec-card:hover {
+    transform: translateY(-3px);
+  }
+
+  /* ── Sleeve + record peeking right (homepage recs) ── */
+  .vinyl-wrap { position: relative; }
+
+  .sleeve-container { position: relative; width: 74%; z-index: 2; }
+  .sleeve-art {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--bg-surface);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06);
+    transition: box-shadow 0.2s ease;
+  }
+  .rec-card:hover .sleeve-art {
+    box-shadow: 0 6px 24px rgba(0,0,0,0.6), 0 0 0 1.5px rgba(232,88,138,0.3);
+  }
+  .sleeve-img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+    transition: transform 0.4s ease;
+  }
+  .rec-card:hover .sleeve-img { transform: scale(1.04); }
+  .sleeve-placeholder {
+    width: 100%; height: 100%;
+    background: radial-gradient(circle, var(--bg-elevated) 0%, var(--bg-surface) 100%);
+  }
+  .vinyl-record-peek {
+    position: absolute;
+    top: 0; right: 0;
+    width: 74%;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    z-index: 1;
+    background:
+      radial-gradient(ellipse at 32% 28%, rgba(255,255,255,0.07) 0%, transparent 48%),
+      repeating-radial-gradient(circle at center, transparent, transparent 7px, rgba(255,255,255,0.04) 7px, rgba(255,255,255,0.04) 8px),
+      radial-gradient(circle at center, #2e2e2e 0%, #222 30%, #181818 60%, #0d0d0d 100%);
+    box-shadow: 4px 4px 16px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(255,255,255,0.05);
+    transition: box-shadow 0.2s ease;
+  }
+  .rec-card:hover .vinyl-record-peek {
+    box-shadow: 6px 6px 22px rgba(0,0,0,0.85), inset 0 0 0 1px rgba(255,255,255,0.07);
+  }
+  .record-center-dot {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 13%; aspect-ratio: 1 / 1; border-radius: 50%;
+    background: radial-gradient(circle, #2c2c2c 0%, #181818 100%);
+    border: 1.5px solid rgba(255,255,255,0.1);
+  }
+
+  .rating-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    font-size: 0.6rem;
+    font-weight: 800;
+    line-height: 1;
+    padding: 0.22rem 0.38rem;
+    border-radius: 0.25rem;
+    letter-spacing: 0.04em;
+    color: #000;
+    z-index: 3;
+  }
+
+  .rating-general-audiences { background-color: var(--rating-general); }
+  .rating-teen-and-up       { background-color: var(--rating-teen); }
+  .rating-mature            { background-color: var(--rating-mature); }
+  .rating-explicit          { background-color: var(--rating-explicit); color: #fff; }
+
+  .rec-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding-left: 0.1rem;
+  }
+
+  .rec-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .rec-fandom {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  .rec-duration {
+    font-size: 0.7rem;
+    color: var(--accent-pink);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  @media (min-width: 768px) {
+    .recs-arrows {
+      display: flex;
+    }
+
+    .recs-row {
+      margin-left: 0;
+      margin-right: 0;
+      padding-left: 0;
+      padding-right: 0;
+    }
+
+    .rec-card {
+      flex: 0 0 200px;
+    }
+  }
+
+  /* ── Fandoms ── */
+  .fandoms-section {
+    margin-bottom: 6rem;
+  }
+
+  /* Mobile: horizontal scroll showing ~2 cards + peek */
+  .fandoms-row {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 0.5rem;
+    margin-left: -1.5rem;
+    margin-right: -1.5rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .fandoms-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .fandom-card {
+    flex: 0 0 42vw;
+    max-width: 200px;
+    scroll-snap-align: start;
+    text-decoration: none;
+    display: block;
+    transition: transform 0.2s ease;
+  }
+
+  .fandom-card:hover {
+    transform: translateY(-3px);
+  }
+
+  .fandom-img-wrap {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  .fandom-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.35s ease;
+  }
+
+  .fandom-card:hover .fandom-img {
+    transform: scale(1.04);
+  }
+
+  .fandom-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0);
+    transition: background 0.25s ease;
+  }
+
+  .fandom-card:hover .fandom-overlay {
+    background: rgba(232, 88, 138, 0.08);
+  }
+
+  /* Desktop: 3-col × 2-row grid */
+  @media (min-width: 768px) {
+    .fandoms-row {
+      display: grid;
+      grid-template-columns: repeat(3, 200px);
+      overflow-x: visible;
+      margin-left: 0;
+      margin-right: 0;
+      padding-left: 0;
+      padding-right: 0;
+      gap: 1.5rem;
+    }
+
+    .fandom-card {
+      flex: unset;
+      max-width: unset;
+    }
+  }
+
+  /* ── Collections ── */
+  .collections-section {
+    margin-bottom: 6rem;
+  }
+
+  .section-header {
+    margin-bottom: 2rem;
+  }
+
+  .section-title {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 0.6rem 0;
+  }
+
+  .section-rule {
+    width: 3rem;
+    height: 3px;
+    background-color: var(--accent-pink);
+    border-radius: 2px;
+  }
+
+  /* Mobile: horizontal scroll showing ~1.5 cards */
+  .collections-row {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 0.5rem;
+    /* Bleed left/right to match page padding so cards sit flush */
+    margin-left: -1.5rem;
+    margin-right: -1.5rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .collections-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .collection-card {
+    flex: 0 0 56vw;
+    max-width: 220px;
+    scroll-snap-align: start;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    transition: transform 0.2s ease;
+  }
+
+  .collection-card:hover {
+    transform: translateY(-3px);
+  }
+
+  .collection-img-wrap {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  .collection-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.35s ease;
+  }
+
+  .collection-card:hover .collection-img {
+    transform: scale(1.04);
+  }
+
+  .collection-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0);
+    transition: background 0.25s ease;
+  }
+
+  .collection-card:hover .collection-overlay {
+    background: rgba(232, 88, 138, 0.08);
+  }
+
+  .collection-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    padding-left: 0.1rem;
+    letter-spacing: 0.01em;
+  }
+
+  /* Desktop: fixed-width 3-column grid, left-aligned */
+  @media (min-width: 768px) {
+    .collections-row {
+      display: grid;
+      grid-template-columns: repeat(3, 200px);
+      overflow-x: visible;
+      margin-left: 0;
+      margin-right: 0;
+      padding-left: 0;
+      padding-right: 0;
+      gap: 1.5rem;
+    }
+
+    .collection-card {
+      flex: unset;
+      max-width: unset;
+    }
+  }
+
+  /* ── Commissioned Story Art ── */
+  .art-section {
+    margin-bottom: 6rem;
+  }
+
+  .art-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .art-arrows {
+    display: none;
+    gap: 0.5rem;
+  }
+
+  @media (min-width: 768px) {
+    .art-arrows {
+      display: flex;
+    }
+  }
+
+  .art-row {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 0.5rem;
+    margin-left: -1.5rem;
+    margin-right: -1.5rem;
+    padding-left: 1.5rem;
+    padding-right: 0;
+  }
+
+  .art-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .art-card {
+    flex: 0 0 42vw;
+    max-width: 200px;
+    scroll-snap-align: start;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: transform 0.2s ease;
+  }
+
+  .art-card:hover {
+    transform: translateY(-3px);
+  }
+
+  .art-img-wrap {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  .art-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.35s ease;
+  }
+
+  .art-card:hover .art-img {
+    transform: scale(1.04);
+  }
+
+  .art-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0);
+    transition: background 0.25s ease;
+  }
+
+  .art-card:hover .art-overlay {
+    background: rgba(232, 88, 138, 0.08);
+  }
+
+  .art-credit {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    padding-left: 0.1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  @media (min-width: 768px) {
+    .art-row {
+      margin-left: 0;
+      margin-right: 0;
+      padding-left: 0;
+      padding-right: 0;
+    }
+
+    .art-card {
+      flex: 0 0 200px;
+    }
+  }
 </style>
+
+<script>
+  const row = document.getElementById('recs-row') as HTMLElement | null;
+  const prevBtn = document.getElementById('recs-prev') as HTMLButtonElement | null;
+  const nextBtn = document.getElementById('recs-next') as HTMLButtonElement | null;
+
+  const SCROLL_AMOUNT = 160 * 3 + 16 * 2; // ~3 cards + gaps
+
+  function updateArrows() {
+    if (!row || !prevBtn || !nextBtn) return;
+    prevBtn.disabled = row.scrollLeft <= 0;
+    nextBtn.disabled = row.scrollLeft + row.clientWidth >= row.scrollWidth - 1;
+  }
+
+  prevBtn?.addEventListener('click', () => {
+    row?.scrollBy({ left: -SCROLL_AMOUNT, behavior: 'smooth' });
+  });
+
+  nextBtn?.addEventListener('click', () => {
+    row?.scrollBy({ left: SCROLL_AMOUNT, behavior: 'smooth' });
+  });
+
+  row?.addEventListener('scroll', updateArrows, { passive: true });
+
+  // Set initial state once DOM is ready
+  updateArrows();
+
+  //  Commissioned Story Art arrows
+  const artRow = document.getElementById('art-row') as HTMLElement | null;
+  const artPrev = document.getElementById('art-prev') as HTMLButtonElement | null;
+  const artNext = document.getElementById('art-next') as HTMLButtonElement | null;
+
+  function updateArtArrows() {
+    if (!artRow || !artPrev || !artNext) return;
+    artPrev.disabled = artRow.scrollLeft <= 0;
+    artNext.disabled = artRow.scrollLeft + artRow.clientWidth >= artRow.scrollWidth - 1;
+  }
+
+  artPrev?.addEventListener('click', () => {
+    artRow?.scrollBy({ left: -SCROLL_AMOUNT, behavior: 'smooth' });
+  });
+
+  artNext?.addEventListener('click', () => {
+    artRow?.scrollBy({ left: SCROLL_AMOUNT, behavior: 'smooth' });
+  });
+
+  artRow?.addEventListener('scroll', updateArtArrows, { passive: true });
+  updateArtArrows();
+</script>

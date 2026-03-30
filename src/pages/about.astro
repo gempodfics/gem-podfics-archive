@@ -1,0 +1,240 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="About Gem" variant="home">
+  <main class="about-page">
+    <section class="about-hero">
+      <div class="about-headshot">
+        <img src="/Headshot.PNG" alt="Gem headshot" class="headshot-img" />
+      </div>
+
+      <div class="about-hero-text">
+        <h1 class="about-gem-heading">Hi, I'm Gem</h1>
+        <div class="about-hero-rule" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <section class="about-card">
+      <h2 class="about-card-title">About</h2>
+
+      <div class="about-copy">
+        <h3 class="about-subheading">What's Podfic?</h3>
+        <p class="about-paragraph">
+          Podfics are the &quot;audiobooks&quot; of fan fiction.
+        </p>
+        <p class="about-paragraph">
+          Studies have also shown fan fiction is a great outlet for identity exploration for queer folks. I aim to create a safe space for fans to fall even more in love with the stories and ships they enjoy.
+        </p>
+        <p class="about-paragraph">
+          I podfic my favorite stories I've read out of pure enjoyment and spirit of the community and also take commissions for those who want me to read their work.
+        </p>
+        <p class="about-paragraph">
+          My general rule is if I enjoy the fic, feel I'm capable of voicing it, then I'll record it.
+        </p>
+
+        <h3 class="about-subheading">My Podfic Dynamics and Themes</h3>
+        <p class="about-paragraph">
+          I enjoy reading and recording many things, including dead dove. I strongly advise you review the original fic on Ao3 linked in the summary section that lists all story tags.
+        </p>
+
+        <h3 class="about-subheading">Features &amp; Accolades</h3>
+        <ul class="accolades">
+          <li>
+            <a
+              href="https://www.transformativeworks.org/otw-guest-post-gem-asteria/"
+              target="_blank"
+              rel="noopener"
+              class="accolade-link"
+            >
+              <span class="accolade-icon" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M7 0.75L12.25 7L7 13.25L1.75 7L7 0.75Z" fill="currentColor" />
+                </svg>
+              </span>
+              Organization for Transformative Works Guest Post: Gem Asteria
+            </a>
+          </li>
+
+          <li>
+            <a
+              href="https://blackpodawards.com/our-nominees-and-winners/2023-nominees-and-winners/"
+              target="_blank"
+              rel="noopener"
+              class="accolade-link"
+            >
+              <span class="accolade-icon" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M7 0.75L12.25 7L7 13.25L1.75 7L7 0.75Z" fill="currentColor" />
+                </svg>
+              </span>
+              Black Podcasting Awards - 2023 Nominee for Best Scripted Fiction Podcast
+            </a>
+          </li>
+
+          <li>
+            <a
+              href="https://everybody-media.com/iwpa-shortlists-2023/"
+              target="_blank"
+              rel="noopener"
+              class="accolade-link"
+            >
+              <span class="accolade-icon" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M7 0.75L12.25 7L7 13.25L1.75 7L7 0.75Z" fill="currentColor" />
+                </svg>
+              </span>
+              IWPA Shortlist 2023 - Moment of Dramatic Tension
+            </a>
+          </li>
+        </ul>
+      </div>
+    </section>
+  </main>
+</Layout>
+
+<style>
+  .about-page {
+    padding-top: 8rem;
+    padding-bottom: 7rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    max-width: 90rem;
+    margin: 0 auto;
+  }
+
+  @media (min-width: 1024px) {
+    .about-page {
+      padding-left: 6rem;
+      padding-right: 6rem;
+    }
+  }
+
+  .about-hero {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: center;
+    margin-bottom: 2.75rem;
+  }
+
+  @media (min-width: 768px) {
+    .about-hero {
+      flex-direction: row;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 3rem;
+      margin-bottom: 3.5rem;
+    }
+  }
+
+  .about-headshot {
+    width: 200px;
+    height: 200px;
+    border-radius: 1.5rem;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+  }
+
+  .headshot-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: saturate(1.02);
+  }
+
+  .about-hero-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .about-gem-heading {
+    margin: 0;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-size: clamp(2.2rem, 6vw, 3.6rem);
+    font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+
+  .about-hero-rule {
+    width: 6rem;
+    height: 3px;
+    background: var(--accent-pink);
+    border-radius: 2px;
+    margin-top: 1rem;
+  }
+
+  .about-card {
+    background: rgba(26, 16, 40, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 1.25rem;
+    padding: 2rem 1.5rem;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.35);
+  }
+
+  @media (min-width: 768px) {
+    .about-card {
+      padding: 2.5rem 2rem;
+    }
+  }
+
+  .about-card-title {
+    margin: 0 0 1.25rem 0;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .about-copy {
+    color: var(--text-secondary);
+    line-height: 1.9;
+    font-size: 1rem;
+  }
+
+  .about-subheading {
+    margin: 1.6rem 0 0.5rem 0;
+    color: var(--text-primary);
+    font-weight: 900;
+    font-size: 1.05rem;
+  }
+
+  .about-paragraph {
+    margin: 0.75rem 0;
+  }
+
+  .accolades {
+    list-style: none;
+    padding: 0;
+    margin: 0.75rem 0 0 0;
+  }
+
+  .accolades li {
+    margin: 0.7rem 0;
+  }
+
+  .accolade-link {
+    display: inline-flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+    color: var(--accent-pink);
+    text-decoration: none;
+    font-weight: 700;
+  }
+
+  .accolade-link:hover {
+    text-decoration: underline;
+    text-decoration-color: rgba(232, 88, 138, 0.5);
+    text-underline-offset: 3px;
+  }
+
+  .accolade-icon {
+    margin-top: 0.2rem;
+    color: var(--accent-pink);
+    flex: 0 0 auto;
+  }
+</style>
+
