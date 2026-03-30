@@ -128,6 +128,17 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
         <div class="sheet-handle"></div>
       </button>
 
+      <!-- Sheet title + pills (mobile only) -->
+      <div class="sheet-title-row">
+        <div class="sheet-title-marquee" id="sheet-title-marquee">
+          <span class="sheet-title-text" id="sheet-title-text">{p.title}</span>
+        </div>
+        <div class="sheet-pills">
+          {p.fandoms.map(f => <span class="fandom-pill">{f}</span>)}
+          {p.dynamic && <span class="dynamic-pill">{p.dynamic}</span>}
+        </div>
+      </div>
+
       <!-- ── Left column: turntable + controls ── -->
       <div class="player-left">
 
@@ -212,15 +223,9 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
 
         <!-- Playback controls -->
         <div class="controls">
-          <div class="speed-row">
-            {['1', '1.25', '1.5'].map(s => (
-              <button class={`speed-btn${s === '1' ? ' active' : ''}`} data-speed={s}>
-                {s}×
-              </button>
-            ))}
-          </div>
-
           <div class="control-row">
+            <button class="speed-cycle-btn" id="speed-cycle-btn" aria-label="Playback speed">1×</button>
+
             <button class="ctrl-btn" id="skip-back" aria-label="Skip back 15 seconds">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
               <span class="ctrl-label">15</span>
@@ -235,6 +240,11 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
               <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 13c0 3.31-2.69 6-6 6s-6-2.69-6-6 2.69-6 6-6v4l5-5-5-5v4c-4.42 0-8 3.58-8 8s3.58 8 8 8 8-3.58 8-8h-2z"/></svg>
               <span class="ctrl-label">15</span>
             </button>
+
+            <button class="mute-btn" id="mute-btn" aria-label="Mute">
+              <svg id="icon-unmuted" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+              <svg id="icon-muted" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="display:none"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+            </button>
           </div>
 
           <div class="scrubber-row">
@@ -246,18 +256,24 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
             <span class="time-label" id="time-total">{p.length ? formatDuration(p.length) : '--:--'}</span>
           </div>
 
-          <div class="volume-row" aria-label="Volume">
-            <svg class="volume-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
-            </svg>
-            <input
-              class="volume-slider"
-              id="volume-slider"
-              type="range"
-              min="0" max="1" step="0.02" value="1"
-              aria-label="Volume"
-            />
-          </div>
+          {p.summary && (
+            <div class="sheet-summary-card">
+              <h2 class="sheet-summary-heading">About this podfic</h2>
+              <p class="sheet-summary-meta">
+                {[p.type, p.fandoms.join(' · '), p.dynamic].filter(Boolean).join(' · ')}
+              </p>
+              <div class="sheet-summary-body">
+                <p class="summary-text" id="sheet-summary-text">{p.summary}</p>
+                <button class="see-more-btn" id="sheet-see-more-btn" aria-expanded="false">See more</button>
+              </div>
+              {p.ao3Url && (
+                <a href={p.ao3Url} target="_blank" rel="noopener" class="ao3-link">
+                  Access on AO3
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 19H5V5h7V3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+                </a>
+              )}
+            </div>
+          )}
         </div>
 
         {!hasAudio && (
@@ -657,16 +673,19 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
     align-items: center;
     gap: 1rem;
   }
-  .speed-row { display: flex; gap: 0.4rem; align-items: center; }
-  .speed-btn {
-    font-size: 0.72rem; font-weight: 600;
-    padding: 0.3rem 0.65rem; border-radius: 999px;
-    border: 1px solid var(--bg-elevated); background: transparent;
-    color: var(--text-muted); cursor: pointer; transition: all 0.15s;
+  .control-row { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+  .speed-cycle-btn {
+    font-size: 0.82rem; font-weight: 700; min-width: 2.5rem; text-align: center;
+    background: none; border: none; color: var(--text-secondary);
+    cursor: pointer; padding: 0.4rem; border-radius: 4px; transition: color 0.15s; flex-shrink: 0;
   }
-  .speed-btn:hover { border-color: var(--accent-pink); color: var(--text-secondary); }
-  .speed-btn.active { background: var(--accent-pink); border-color: var(--accent-pink); color: #fff; }
-  .control-row { display: flex; align-items: center; gap: 2rem; }
+  .speed-cycle-btn:hover { color: var(--text-primary); }
+  .mute-btn {
+    display: flex; align-items: center; justify-content: center;
+    background: none; border: none; color: var(--text-secondary);
+    cursor: pointer; padding: 0.4rem; border-radius: 50%; transition: color 0.15s; flex-shrink: 0;
+  }
+  .mute-btn:hover { color: var(--text-primary); }
   .ctrl-btn {
     position: relative; display: flex; flex-direction: column;
     align-items: center; gap: 0; background: none; border: none;
@@ -705,35 +724,6 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
     transform: translateX(-50%) scale(0.7); transform-origin: center;
     opacity: 0; transition: opacity 0.15s, transform 0.15s; pointer-events: none;
   }
-
-  .volume-row {
-    display: flex; align-items: center; gap: 0.6rem;
-    background: var(--bg-elevated); border-radius: 999px;
-    padding: 0.45rem 1rem; width: 100%; max-width: 260px;
-  }
-  .volume-icon { color: var(--text-muted); flex-shrink: 0; }
-  .volume-slider {
-    flex: 1; -webkit-appearance: none; appearance: none;
-    height: 3px; border-radius: 2px; outline: none; cursor: pointer;
-    background: linear-gradient(
-      to right,
-      var(--text-secondary) 0%,
-      var(--text-secondary) calc(var(--vol, 100) * 1%),
-      rgba(255,255,255,0.15) calc(var(--vol, 100) * 1%),
-      rgba(255,255,255,0.15) 100%
-    );
-  }
-  .volume-slider::-webkit-slider-thumb {
-    -webkit-appearance: none; width: 12px; height: 12px;
-    border-radius: 50%; background: var(--text-primary); cursor: pointer;
-    opacity: 0; transition: opacity 0.15s;
-  }
-  .volume-row:hover .volume-slider::-webkit-slider-thumb { opacity: 1; }
-  .volume-slider::-moz-range-thumb {
-    width: 12px; height: 12px; border: none; border-radius: 50%;
-    background: var(--text-primary); cursor: pointer; opacity: 0; transition: opacity 0.15s;
-  }
-  .volume-row:hover .volume-slider::-moz-range-thumb { opacity: 1; }
 
   .no-audio-msg { font-size: 0.82rem; color: var(--text-muted); text-align: center; font-style: italic; }
 
@@ -824,6 +814,64 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
   }
 
   /* ══════════════════════════════════════════════
+     SHEET TITLE ROW (mobile only)
+     ══════════════════════════════════════════════ */
+  .sheet-title-row {
+    display: none; /* shown on mobile via media query */
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.25rem 1.25rem 0;
+    text-align: center;
+  }
+  .sheet-title-marquee {
+    overflow: hidden;
+    white-space: nowrap;
+    width: 100%;
+  }
+  .sheet-title-text {
+    display: inline-block;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    white-space: nowrap;
+  }
+  .sheet-title-text.marquee-active {
+    animation: sheet-marquee 10s ease-in-out infinite;
+  }
+  @keyframes sheet-marquee {
+    0%, 20%  { transform: translateX(0); }
+    80%, 100% { transform: translateX(var(--marquee-offset, 0)); }
+  }
+  .sheet-pills {
+    display: flex; flex-wrap: wrap; gap: 0.4rem;
+    justify-content: center; align-items: center;
+  }
+
+  /* ══════════════════════════════════════════════
+     SHEET SUMMARY CARD (mobile only)
+     ══════════════════════════════════════════════ */
+  .sheet-summary-card {
+    width: 100%;
+    background: var(--bg-surface);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 1.25rem 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .sheet-summary-heading {
+    font-size: 1rem; font-weight: 800;
+    color: var(--text-primary); margin: 0;
+  }
+  .sheet-summary-meta {
+    font-size: 0.82rem; color: var(--text-muted); margin: 0;
+  }
+  .sheet-summary-body { display: flex; flex-direction: column; gap: 0.5rem; }
+
+  /* ══════════════════════════════════════════════
      MOBILE LAYOUT  (< 768px)
      ══════════════════════════════════════════════ */
   @media (max-width: 767px) {
@@ -876,8 +924,11 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
       visibility: hidden;
     }
 
-    /* Show dismiss button */
+    /* Show dismiss button + sheet title row */
     .sheet-dismiss-btn {
+      display: flex;
+    }
+    .sheet-title-row {
       display: flex;
     }
 
@@ -943,9 +994,11 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
      ══════════════════════════════════════════════ */
   @media (min-width: 768px) {
     /* Hide mobile-only elements */
-    .mobile-content   { display: none !important; }
-    .mini-player-bar  { display: none !important; }
+    .mobile-content    { display: none !important; }
+    .mini-player-bar   { display: none !important; }
     .sheet-dismiss-btn { display: none !important; }
+    .sheet-title-row   { display: none !important; }
+    .sheet-summary-card { display: none !important; }
 
     /* Back button: fixed top-left, above columns */
     .back-btn {
@@ -1164,24 +1217,27 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
     skipBack?.addEventListener('click', () => { audio.currentTime = Math.max(0, audio.currentTime - 15); });
     skipFwd?.addEventListener('click',  () => { audio.currentTime = Math.min(audio.duration || Infinity, audio.currentTime + 15); });
 
-    // ── Speed ──
-    document.querySelectorAll('.speed-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        audio.playbackRate = parseFloat(btn.dataset.speed);
-      });
+    // ── Speed (cycling) ──
+    const speedCycleBtn = document.getElementById('speed-cycle-btn');
+    const speeds = [1, 1.25, 1.5];
+    let speedIdx = 0;
+    speedCycleBtn?.addEventListener('click', () => {
+      speedIdx = (speedIdx + 1) % speeds.length;
+      audio.playbackRate = speeds[speedIdx];
+      speedCycleBtn.textContent = speeds[speedIdx] + '×';
     });
 
-    // ── Volume ──
-    const volSlider = document.getElementById('volume-slider');
-    function updateVolTrack(val) {
-      volSlider?.style.setProperty('--vol', Math.round(val * 100));
-    }
-    updateVolTrack(1);
-    volSlider?.addEventListener('input', () => {
-      audio.volume = parseFloat(volSlider.value);
-      updateVolTrack(parseFloat(volSlider.value));
+    // ── Mute toggle ──
+    const muteBtn = document.getElementById('mute-btn');
+    const iconUnmuted = document.getElementById('icon-unmuted');
+    const iconMuted   = document.getElementById('icon-muted');
+    let isMuted = false;
+    muteBtn?.addEventListener('click', () => {
+      isMuted = !isMuted;
+      audio.muted = isMuted;
+      if (iconUnmuted) iconUnmuted.style.display = isMuted ? 'none' : '';
+      if (iconMuted)   iconMuted.style.display   = isMuted ? '' : 'none';
+      muteBtn?.setAttribute('aria-label', isMuted ? 'Unmute' : 'Mute');
     });
 
     // ── Scrubber seek (click + drag) ──
@@ -1200,14 +1256,37 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
     document.addEventListener('touchend', () => { scrubbing = false; });
   }
 
+  // ── Marquee ──
+  function initMarquee() {
+    const text      = document.getElementById('sheet-title-text');
+    const container = document.getElementById('sheet-title-marquee');
+    if (!text || !container) return;
+    text.classList.remove('marquee-active');
+    const overflow = text.scrollWidth - container.clientWidth;
+    if (overflow > 5) {
+      text.style.setProperty('--marquee-offset', `-${overflow}px`);
+      text.classList.add('marquee-active');
+    }
+  }
+  initMarquee();
+  window.addEventListener('resize', initMarquee);
+
   // ── See More toggles ──
-  // Mobile summary
+  // State 1 (mobile content page) summary
   const mobileSummaryText = document.getElementById('mobile-summary-text');
   const mobileSeeMoreBtn  = document.getElementById('mobile-see-more-btn');
   mobileSeeMoreBtn?.addEventListener('click', () => {
     const expanded = mobileSummaryText.classList.toggle('expanded');
     mobileSeeMoreBtn.textContent = expanded ? 'See less' : 'See more';
     mobileSeeMoreBtn.setAttribute('aria-expanded', expanded);
+  });
+  // Player sheet summary
+  const sheetSummaryText = document.getElementById('sheet-summary-text');
+  const sheetSeeMoreBtn  = document.getElementById('sheet-see-more-btn');
+  sheetSeeMoreBtn?.addEventListener('click', () => {
+    const expanded = sheetSummaryText.classList.toggle('expanded');
+    sheetSeeMoreBtn.textContent = expanded ? 'See less' : 'See more';
+    sheetSeeMoreBtn.setAttribute('aria-expanded', expanded);
   });
   // Desktop summary
   const summaryText = document.getElementById('summary-text');
