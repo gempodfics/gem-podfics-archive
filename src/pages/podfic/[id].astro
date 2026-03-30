@@ -781,6 +781,7 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
   .summary-text {
     font-size: 0.9rem; line-height: 1.65; color: var(--text-secondary); margin: 0;
     display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    white-space: pre-line;
   }
   .summary-text.expanded { display: block; overflow: visible; -webkit-line-clamp: unset; }
   .see-more-btn {
@@ -1299,18 +1300,27 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
     sheetSeeMoreBtn.setAttribute('aria-expanded', expanded);
   });
 
-  // Reveal "See more" only after fonts are loaded so text measurements are accurate
+  // Reveal "See more" only if text exceeds 3 lines.
+  // Temporarily removes the clamp to measure the full natural height, because
+  // -webkit-line-clamp makes scrollHeight === clientHeight in most browsers.
+  function revealSeeMoreIfNeeded(textEl, btnEl) {
+    if (!textEl || !btnEl) return;
+    textEl.style.webkitLineClamp = 'unset';
+    textEl.style.display = 'block';
+    textEl.style.overflow = 'visible';
+    const fullHeight = textEl.scrollHeight;
+    textEl.style.webkitLineClamp = '';
+    textEl.style.display = '';
+    textEl.style.overflow = '';
+    const lineHeight = parseFloat(getComputedStyle(textEl).lineHeight) || 24;
+    if (fullHeight > lineHeight * 3 + 4) {
+      btnEl.style.display = '';
+    }
+  }
+
   document.fonts.ready.then(() => {
-    if (mobileSummaryText && mobileSeeMoreBtn) {
-      if (mobileSummaryText.scrollHeight > mobileSummaryText.clientHeight + 2) {
-        mobileSeeMoreBtn.style.display = '';
-      }
-    }
-    if (sheetSummaryText && sheetSeeMoreBtn) {
-      if (sheetSummaryText.scrollHeight > sheetSummaryText.clientHeight + 2) {
-        sheetSeeMoreBtn.style.display = '';
-      }
-    }
+    revealSeeMoreIfNeeded(mobileSummaryText, mobileSeeMoreBtn);
+    revealSeeMoreIfNeeded(sheetSummaryText, sheetSeeMoreBtn);
   });
   // Desktop summary
   const summaryText = document.getElementById('summary-text');
