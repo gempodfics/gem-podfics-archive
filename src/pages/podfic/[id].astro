@@ -1301,17 +1301,19 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
   });
 
   // Reveal "See more" only if text exceeds 3 lines.
-  // Temporarily removes the clamp to measure the full natural height, because
-  // -webkit-line-clamp makes scrollHeight === clientHeight in most browsers.
+  // Uses a hidden clone appended to <body> to measure the full unclamped height —
+  // the most reliable cross-browser approach because it avoids the scrollHeight === clientHeight
+  // problem caused by -webkit-line-clamp.
   function revealSeeMoreIfNeeded(textEl, btnEl) {
     if (!textEl || !btnEl) return;
-    textEl.style.webkitLineClamp = 'unset';
-    textEl.style.display = 'block';
-    textEl.style.overflow = 'visible';
-    const fullHeight = textEl.scrollHeight;
-    textEl.style.webkitLineClamp = '';
-    textEl.style.display = '';
-    textEl.style.overflow = '';
+    const clone = textEl.cloneNode(true);
+    clone.style.cssText =
+      'position:absolute;visibility:hidden;pointer-events:none;' +
+      '-webkit-line-clamp:unset;display:block;overflow:visible;' +
+      'height:auto;max-height:none;width:' + textEl.offsetWidth + 'px';
+    document.body.appendChild(clone);
+    const fullHeight = clone.offsetHeight;
+    document.body.removeChild(clone);
     const lineHeight = parseFloat(getComputedStyle(textEl).lineHeight) || 24;
     if (fullHeight > lineHeight * 3 + 4) {
       btnEl.style.display = '';
