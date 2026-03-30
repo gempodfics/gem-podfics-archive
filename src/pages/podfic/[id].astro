@@ -103,7 +103,6 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
           <h2 class="summary-heading">Summary</h2>
           <div class="summary-body">
             <p class="summary-text" id="mobile-summary-text">{p.summary}</p>
-            <button class="see-more-btn" id="mobile-see-more-btn" aria-expanded="false">See more</button>
           </div>
           {p.ao3Url && (
             <a href={p.ao3Url} target="_blank" rel="noopener" class="ao3-link">
@@ -269,7 +268,6 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
               )}
               <div class="sheet-summary-body">
                 <p class="summary-text" id="sheet-summary-text">{p.summary}</p>
-                <button class="see-more-btn" id="sheet-see-more-btn" aria-expanded="false">See more</button>
               </div>
               {p.ao3Url && (
                 <a href={p.ao3Url} target="_blank" rel="noopener" class="ao3-link">
@@ -329,7 +327,6 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
           <h2 class="summary-heading">Summary</h2>
           <div class="summary-body">
             <p class="summary-text" id="summary-text">{p.summary}</p>
-            <button class="see-more-btn" id="see-more-btn" aria-expanded="false">See more</button>
           </div>
           {p.ao3Url && (
             <a href={p.ao3Url} target="_blank" rel="noopener" class="ao3-link">
@@ -780,14 +777,7 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
   .summary-body { display: flex; flex-direction: column; gap: 0.5rem; }
   .summary-text {
     font-size: 0.9rem; line-height: 1.65; color: var(--text-secondary); margin: 0;
-    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
     white-space: pre-line;
-  }
-  .summary-text.expanded { display: block; overflow: visible; -webkit-line-clamp: unset; }
-  .see-more-btn {
-    align-self: flex-start; background: none; border: none;
-    color: var(--accent-pink); font-size: 0.82rem; font-weight: 600;
-    cursor: pointer; padding: 0; text-decoration: underline; text-underline-offset: 2px;
   }
   .ao3-link {
     display: inline-flex; align-items: center; gap: 0.3rem;
@@ -877,10 +867,6 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
   }
   .sheet-summary-written { font-size: 0.82rem; color: var(--text-muted); margin: 0; }
   .sheet-summary-body { display: flex; flex-direction: column; gap: 0.5rem; }
-  .sheet-summary-card .summary-text { -webkit-line-clamp: 3; }
-  .sheet-summary-card .see-more-btn { display: none; }
-  /* Content page summary see-more also hidden until JS confirms overflow */
-  #mobile-see-more-btn { display: none; }
 
   /* ══════════════════════════════════════════════
      MOBILE LAYOUT  (< 768px)
@@ -1071,9 +1057,6 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
     .player-credits { justify-content: flex-start; }
     .summary-section { border-top-color: rgba(255, 255, 255, 0.07); }
 
-    /* Full summary on desktop */
-    .summary-text { display: block; overflow: visible; -webkit-line-clamp: unset; }
-    .see-more-btn { display: none; }
   }
 </style>
 
@@ -1282,54 +1265,4 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
   initMarquee();
   window.addEventListener('resize', initMarquee);
 
-  // ── See More toggles ──
-  const mobileSummaryText = document.getElementById('mobile-summary-text');
-  const mobileSeeMoreBtn  = document.getElementById('mobile-see-more-btn');
-  const sheetSummaryText  = document.getElementById('sheet-summary-text');
-  const sheetSeeMoreBtn   = document.getElementById('sheet-see-more-btn');
-
-  // Wire up click handlers first
-  mobileSeeMoreBtn?.addEventListener('click', () => {
-    const expanded = mobileSummaryText.classList.toggle('expanded');
-    mobileSeeMoreBtn.textContent = expanded ? 'See less' : 'See more';
-    mobileSeeMoreBtn.setAttribute('aria-expanded', expanded);
-  });
-  sheetSeeMoreBtn?.addEventListener('click', () => {
-    const expanded = sheetSummaryText.classList.toggle('expanded');
-    sheetSeeMoreBtn.textContent = expanded ? 'See less' : 'See more';
-    sheetSeeMoreBtn.setAttribute('aria-expanded', expanded);
-  });
-
-  // Reveal "See more" only if text exceeds 3 lines.
-  // Uses a hidden clone appended to <body> to measure the full unclamped height —
-  // the most reliable cross-browser approach because it avoids the scrollHeight === clientHeight
-  // problem caused by -webkit-line-clamp.
-  function revealSeeMoreIfNeeded(textEl, btnEl) {
-    if (!textEl || !btnEl) return;
-    const clone = textEl.cloneNode(true);
-    clone.style.cssText =
-      'position:absolute;visibility:hidden;pointer-events:none;' +
-      '-webkit-line-clamp:unset;display:block;overflow:visible;' +
-      'height:auto;max-height:none;width:' + textEl.offsetWidth + 'px';
-    document.body.appendChild(clone);
-    const fullHeight = clone.offsetHeight;
-    document.body.removeChild(clone);
-    const lineHeight = parseFloat(getComputedStyle(textEl).lineHeight) || 24;
-    if (fullHeight > lineHeight * 3 + 4) {
-      btnEl.style.display = '';
-    }
-  }
-
-  document.fonts.ready.then(() => {
-    revealSeeMoreIfNeeded(mobileSummaryText, mobileSeeMoreBtn);
-    revealSeeMoreIfNeeded(sheetSummaryText, sheetSeeMoreBtn);
-  });
-  // Desktop summary
-  const summaryText = document.getElementById('summary-text');
-  const seeMoreBtn  = document.getElementById('see-more-btn');
-  seeMoreBtn?.addEventListener('click', () => {
-    const expanded = summaryText.classList.toggle('expanded');
-    seeMoreBtn.textContent = expanded ? 'See less' : 'See more';
-    seeMoreBtn.setAttribute('aria-expanded', expanded);
-  });
 </script>
