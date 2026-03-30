@@ -1282,37 +1282,36 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
   window.addEventListener('resize', initMarquee);
 
   // ── See More toggles ──
-  // State 1 (mobile content page) summary — only show button if text overflows
   const mobileSummaryText = document.getElementById('mobile-summary-text');
   const mobileSeeMoreBtn  = document.getElementById('mobile-see-more-btn');
-  if (mobileSummaryText && mobileSeeMoreBtn) {
-    requestAnimationFrame(() => {
+  const sheetSummaryText  = document.getElementById('sheet-summary-text');
+  const sheetSeeMoreBtn   = document.getElementById('sheet-see-more-btn');
+
+  // Wire up click handlers first
+  mobileSeeMoreBtn?.addEventListener('click', () => {
+    const expanded = mobileSummaryText.classList.toggle('expanded');
+    mobileSeeMoreBtn.textContent = expanded ? 'See less' : 'See more';
+    mobileSeeMoreBtn.setAttribute('aria-expanded', expanded);
+  });
+  sheetSeeMoreBtn?.addEventListener('click', () => {
+    const expanded = sheetSummaryText.classList.toggle('expanded');
+    sheetSeeMoreBtn.textContent = expanded ? 'See less' : 'See more';
+    sheetSeeMoreBtn.setAttribute('aria-expanded', expanded);
+  });
+
+  // Reveal "See more" only after fonts are loaded so text measurements are accurate
+  document.fonts.ready.then(() => {
+    if (mobileSummaryText && mobileSeeMoreBtn) {
       if (mobileSummaryText.scrollHeight > mobileSummaryText.clientHeight + 2) {
         mobileSeeMoreBtn.style.display = '';
       }
-    });
-    mobileSeeMoreBtn.addEventListener('click', () => {
-      const expanded = mobileSummaryText.classList.toggle('expanded');
-      mobileSeeMoreBtn.textContent = expanded ? 'See less' : 'See more';
-      mobileSeeMoreBtn.setAttribute('aria-expanded', expanded);
-    });
-  }
-  // Player sheet summary
-  const sheetSummaryText = document.getElementById('sheet-summary-text');
-  const sheetSeeMoreBtn  = document.getElementById('sheet-see-more-btn');
-  if (sheetSummaryText && sheetSeeMoreBtn) {
-    // Only show "See more" if text is actually clamped
-    requestAnimationFrame(() => {
+    }
+    if (sheetSummaryText && sheetSeeMoreBtn) {
       if (sheetSummaryText.scrollHeight > sheetSummaryText.clientHeight + 2) {
         sheetSeeMoreBtn.style.display = '';
       }
-    });
-    sheetSeeMoreBtn.addEventListener('click', () => {
-      const expanded = sheetSummaryText.classList.toggle('expanded');
-      sheetSeeMoreBtn.textContent = expanded ? 'See less' : 'See more';
-      sheetSeeMoreBtn.setAttribute('aria-expanded', expanded);
-    });
-  }
+    }
+  });
   // Desktop summary
   const summaryText = document.getElementById('summary-text');
   const seeMoreBtn  = document.getElementById('see-more-btn');
