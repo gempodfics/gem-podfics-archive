@@ -128,14 +128,10 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
         <div class="sheet-handle"></div>
       </button>
 
-      <!-- Sheet title + pills (mobile only) -->
+      <!-- Sheet title (mobile only) -->
       <div class="sheet-title-row">
         <div class="sheet-title-marquee" id="sheet-title-marquee">
           <span class="sheet-title-text" id="sheet-title-text">{p.title}</span>
-        </div>
-        <div class="sheet-pills">
-          {p.fandoms.map(f => <span class="fandom-pill">{f}</span>)}
-          {p.dynamic && <span class="dynamic-pill">{p.dynamic}</span>}
         </div>
       </div>
 
@@ -258,9 +254,9 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
 
           {p.summary && (
             <div class="sheet-summary-card">
-              <h2 class="sheet-summary-heading">About this podfic</h2>
+              <h2 class="sheet-summary-heading">Summary</h2>
               <p class="sheet-summary-meta">
-                {[p.type, p.fandoms.join(' · '), p.dynamic].filter(Boolean).join(' · ')}
+                {[p.fandoms.join(' · '), p.dynamic].filter(Boolean).join(' · ')}
               </p>
               <div class="sheet-summary-body">
                 <p class="summary-text" id="sheet-summary-text">{p.summary}</p>
@@ -870,6 +866,8 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
     font-size: 0.82rem; color: var(--text-muted); margin: 0;
   }
   .sheet-summary-body { display: flex; flex-direction: column; gap: 0.5rem; }
+  .sheet-summary-card .summary-text { -webkit-line-clamp: 3; }
+  .sheet-summary-card .see-more-btn { display: none; }
 
   /* ══════════════════════════════════════════════
      MOBILE LAYOUT  (< 768px)
@@ -1283,11 +1281,19 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
   // Player sheet summary
   const sheetSummaryText = document.getElementById('sheet-summary-text');
   const sheetSeeMoreBtn  = document.getElementById('sheet-see-more-btn');
-  sheetSeeMoreBtn?.addEventListener('click', () => {
-    const expanded = sheetSummaryText.classList.toggle('expanded');
-    sheetSeeMoreBtn.textContent = expanded ? 'See less' : 'See more';
-    sheetSeeMoreBtn.setAttribute('aria-expanded', expanded);
-  });
+  if (sheetSummaryText && sheetSeeMoreBtn) {
+    // Only show "See more" if text is actually clamped
+    requestAnimationFrame(() => {
+      if (sheetSummaryText.scrollHeight > sheetSummaryText.clientHeight + 2) {
+        sheetSeeMoreBtn.style.display = '';
+      }
+    });
+    sheetSeeMoreBtn.addEventListener('click', () => {
+      const expanded = sheetSummaryText.classList.toggle('expanded');
+      sheetSeeMoreBtn.textContent = expanded ? 'See less' : 'See more';
+      sheetSeeMoreBtn.setAttribute('aria-expanded', expanded);
+    });
+  }
   // Desktop summary
   const summaryText = document.getElementById('summary-text');
   const seeMoreBtn  = document.getElementById('see-more-btn');
