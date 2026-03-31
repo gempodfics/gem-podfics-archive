@@ -17,9 +17,15 @@ import Layout from '../layouts/Layout.astro';
 
     <section class="about-card">
       <h2 class="about-card-title">About</h2>
+      <p class="about-paragraph">
+        I am 30+ fandom enjoyer with a love for many things audio including singing, turning my favorite fan fiction into podfics, and writing and voicing ASMR scripts inspired by fandom and more.</p> 
+      <p class="about-paragraph">
+        All original fan fics have been recorded with the permission or collaboration with the author.</p>
+      <p class="about-paragraph">
+        My podfic work is a celebration transforming inclusive, mostly queer fan-written works into accessible stories.</p>
 
       <div class="about-copy">
-        <h3 class="about-subheading">What's Podfic?</h3>
+        <h2 class="about-subheading">What's Podfic?</h2>
         <p class="about-paragraph">
           Podfics are the &quot;audiobooks&quot; of fan fiction.
         </p>
@@ -33,58 +39,26 @@ import Layout from '../layouts/Layout.astro';
           My general rule is if I enjoy the fic, feel I'm capable of voicing it, then I'll record it.
         </p>
 
-        <h3 class="about-subheading">My Podfic Dynamics and Themes</h3>
+        <h2 class="about-subheading">My Podfic Dynamics and Themes</h2>
         <p class="about-paragraph">
           I enjoy reading and recording many things, including dead dove. I strongly advise you review the original fic on Ao3 linked in the summary section that lists all story tags.
         </p>
 
-        <h3 class="about-subheading">Features &amp; Accolades</h3>
+        <h2 class="about-subheading">Features &amp; Accolades</h2>
         <ul class="accolades">
           <li>
-            <a
-              href="https://www.transformativeworks.org/otw-guest-post-gem-asteria/"
-              target="_blank"
-              rel="noopener"
-              class="accolade-link"
-            >
-              <span class="accolade-icon" aria-hidden="true">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M7 0.75L12.25 7L7 13.25L1.75 7L7 0.75Z" fill="currentColor" />
-                </svg>
-              </span>
+            <a href="https://www.transformativeworks.org/otw-guest-post-gem-asteria/" target="_blank" rel="noopener" class="accolade-link">
               Organization for Transformative Works Guest Post: Gem Asteria
             </a>
           </li>
-
           <li>
-            <a
-              href="https://blackpodawards.com/our-nominees-and-winners/2023-nominees-and-winners/"
-              target="_blank"
-              rel="noopener"
-              class="accolade-link"
-            >
-              <span class="accolade-icon" aria-hidden="true">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M7 0.75L12.25 7L7 13.25L1.75 7L7 0.75Z" fill="currentColor" />
-                </svg>
-              </span>
-              Black Podcasting Awards - 2023 Nominee for Best Scripted Fiction Podcast
+            <a href="https://blackpodawards.com/our-nominees-and-winners/2023-nominees-and-winners/" target="_blank" rel="noopener" class="accolade-link">
+              Black Podcasting Awards — 2023 Nominee for Best Scripted Fiction Podcast
             </a>
           </li>
-
           <li>
-            <a
-              href="https://everybody-media.com/iwpa-shortlists-2023/"
-              target="_blank"
-              rel="noopener"
-              class="accolade-link"
-            >
-              <span class="accolade-icon" aria-hidden="true">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M7 0.75L12.25 7L7 13.25L1.75 7L7 0.75Z" fill="currentColor" />
-                </svg>
-              </span>
-              IWPA Shortlist 2023 - Moment of Dramatic Tension
+            <a href="https://everybody-media.com/iwpa-shortlists-2023/" target="_blank" rel="noopener" class="accolade-link">
+              IWPA Shortlist 2023 — Moment of Dramatic Tension
             </a>
           </li>
         </ul>
@@ -214,27 +188,30 @@ import Layout from '../layouts/Layout.astro';
 
   .accolades li {
     margin: 0.7rem 0;
+    padding-left: 1.1rem;
+    position: relative;
+  }
+
+  .accolades li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: var(--accent-pink);
+    font-size: 1rem;
+    line-height: 1.6;
   }
 
   .accolade-link {
-    display: inline-flex;
-    gap: 0.6rem;
-    align-items: flex-start;
     color: var(--accent-pink);
     text-decoration: none;
     font-weight: 700;
+    line-height: 1.6;
   }
 
   .accolade-link:hover {
     text-decoration: underline;
     text-decoration-color: rgba(232, 88, 138, 0.5);
     text-underline-offset: 3px;
-  }
-
-  .accolade-icon {
-    margin-top: 0.2rem;
-    color: var(--accent-pink);
-    flex: 0 0 auto;
   }
 </style>
 
