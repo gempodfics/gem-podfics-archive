@@ -298,6 +298,18 @@ function ratingLabel(r: string) {
         {p.summary && (
           <div class="mc-mobile-summary">
             <h2 class="summary-heading">Summary</h2>
+            {p.writtenBy && (
+              <p class="sheet-summary-written">
+                Written by{' '}
+                {p.writtenByUrl
+                  ? <a href={p.writtenByUrl} target="_blank" rel="noopener" class="credit-link">{p.writtenBy}</a>
+                  : <span class="credit-name">{p.writtenBy}</span>
+                }
+              </p>
+            )}
+            {p.artistCredit && (
+              <p class="sheet-summary-written">Art by <span class="credit-name">{p.artistCredit}</span></p>
+            )}
             <div class="summary-body">
               <p class="summary-text">{p.summary}</p>
             </div>
@@ -899,6 +911,8 @@ function ratingLabel(r: string) {
     opacity: 0; transition: opacity 0.15s, transform 0.15s; pointer-events: none;
   }
   .no-audio-msg { font-size: 0.82rem; color: var(--text-muted); text-align: center; font-style: italic; }
+
+  .sheet-summary-written { font-size: 0.82rem; color: var(--text-muted); margin: 0; }
 
   /* ── Mobile summary card in player sheet ── */
   .mc-mobile-summary {

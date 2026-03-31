@@ -266,6 +266,9 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
                   }
                 </p>
               )}
+              {p.artistCredit && (
+                <p class="sheet-summary-written">Art by <span class="credit-name">{p.artistCredit}</span></p>
+              )}
               <div class="sheet-summary-body">
                 <p class="summary-text" id="sheet-summary-text">{p.summary}</p>
               </div>
