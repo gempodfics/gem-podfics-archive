@@ -256,22 +256,23 @@
       .btn-primary:active { transform: translateY(0); }
 
       .btn-ghost {
+        width: 100%;
+        padding: 0.9rem 2rem;
+        border-radius: 999px;
         background: none;
-        border: none;
+        border: 1.5px solid var(--text-muted);
         color: var(--text-muted);
         font-family: 'Crimson Pro', Georgia, serif;
-        font-size: 1rem;
-        font-weight: 500;
+        font-size: 1.1rem;
+        font-weight: 700;
         cursor: pointer;
-        padding: 0.4rem 1rem;
-        text-decoration: underline;
-        text-underline-offset: 3px;
-        text-decoration-color: transparent;
-        transition: color 0.15s, text-decoration-color 0.15s;
+        letter-spacing: 0.02em;
+        transition: border-color 0.15s, color 0.15s, background 0.15s;
       }
       .btn-ghost:hover {
+        border-color: var(--text-secondary);
         color: var(--text-secondary);
-        text-decoration-color: var(--text-muted);
+        background: rgba(168,139,197,0.08);
       }
 
       /* ── Fine print ── */
