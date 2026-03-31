@@ -294,6 +294,22 @@ function ratingLabel(r: string) {
           )}
         </div><!-- /controls -->
 
+        <!-- Mobile only: summary card below scrubber in player sheet -->
+        {p.summary && (
+          <div class="mc-mobile-summary">
+            <h2 class="summary-heading">Summary</h2>
+            <div class="summary-body">
+              <p class="summary-text">{p.summary}</p>
+            </div>
+            {p.ao3Url && (
+              <a href={p.ao3Url} target="_blank" rel="noopener" class="ao3-link">
+                Access on AO3
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 19H5V5h7V3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+              </a>
+            )}
+          </div>
+        )}
+
         <!-- Desktop only: metadata below controls in left column -->
         <div class="mc-desktop-meta">
           <div class="meta-badges">
@@ -386,7 +402,9 @@ function ratingLabel(r: string) {
           : <div class="mini-placeholder"></div>
         }
       </div>
-      <span class="mini-title" id="mini-title">{firstChapterName}</span>
+      <div class="mini-title-wrap">
+        <span class="mini-title" id="mini-title">{firstChapterName}</span>
+      </div>
       <button class="mini-play-btn" id="mini-play-btn" aria-label="Play">
         <svg id="mini-icon-play" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
         <svg id="mini-icon-pause" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
@@ -882,6 +900,16 @@ function ratingLabel(r: string) {
   }
   .no-audio-msg { font-size: 0.82rem; color: var(--text-muted); text-align: center; font-style: italic; }
 
+  /* ── Mobile summary card in player sheet ── */
+  .mc-mobile-summary {
+    width: 100%;
+    background: var(--bg-surface);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+    padding: 1.25rem 1.25rem 1rem;
+    margin-top: 0.75rem;
+  }
+
   /* ── Desktop metadata under controls ── */
   .mc-desktop-meta {
     display: none;
@@ -1070,10 +1098,21 @@ function ratingLabel(r: string) {
     }
     .mini-img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .mini-placeholder { width: 100%; height: 100%; background: var(--bg-elevated); }
+    .mini-title-wrap {
+      flex: 1; min-width: 0; overflow: hidden;
+    }
     .mini-title {
-      flex: 1; min-width: 0;
+      display: inline-block;
       font-size: 0.85rem; font-weight: 600; color: var(--text-primary);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .mini-title.marquee-active {
+      animation: mini-marquee 10s ease-in-out infinite;
+    }
+    @keyframes mini-marquee {
+      0%, 15%  { transform: translateX(0); }
+      45%, 55% { transform: translateX(var(--mini-marquee-offset, -40%)); }
+      85%, 100%{ transform: translateX(0); }
     }
     .mini-play-btn {
       width: 44px; height: 44px; border-radius: 50%;
@@ -1096,6 +1135,7 @@ function ratingLabel(r: string) {
     .mini-player-bar    { display: none !important; }
     .sheet-dismiss-btn  { display: none !important; }
     .sheet-title-row    { display: none !important; }
+    .mc-mobile-summary  { display: none !important; }
 
     /* Back button: fixed top-left */
     .back-btn {
@@ -1214,6 +1254,8 @@ function ratingLabel(r: string) {
     if (hasStarted) {
       miniPlayerBar?.classList.add('visible');
       miniPlayerBar?.removeAttribute('aria-hidden');
+      // Measure marquee after the bar is visible so scrollWidth is accurate
+      requestAnimationFrame(initMiniMarquee);
     }
   }
   sheetDismissBtn?.addEventListener('click', closeSheet);
@@ -1269,6 +1311,7 @@ function ratingLabel(r: string) {
     if (sheetTitleText) sheetTitleText.textContent = name;
     if (miniTitle) miniTitle.textContent = name;
     initMarquee();
+    requestAnimationFrame(initMiniMarquee);
   }
 
   // ── Initialize: pre-load chapter 0 ──
@@ -1455,7 +1498,7 @@ function ratingLabel(r: string) {
 
   } // end hasAudio block
 
-  // ── Marquee ──
+  // ── Sheet title marquee ──
   function initMarquee() {
     const text      = document.getElementById('sheet-title-text');
     const container = document.getElementById('sheet-title-marquee');
@@ -1469,4 +1512,18 @@ function ratingLabel(r: string) {
   }
   initMarquee();
   window.addEventListener('resize', initMarquee);
+
+  // ── Mini-player title marquee ──
+  function initMiniMarquee() {
+    const text = document.getElementById('mini-title');
+    const wrap = text?.parentElement;
+    if (!text || !wrap) return;
+    text.classList.remove('marquee-active');
+    const overflow = text.scrollWidth - wrap.clientWidth;
+    if (overflow > 5) {
+      text.style.setProperty('--mini-marquee-offset', `-${overflow}px`);
+      text.classList.add('marquee-active');
+    }
+  }
+  window.addEventListener('resize', initMiniMarquee);
 </script>
