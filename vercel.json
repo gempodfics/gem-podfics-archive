@@ -1,11 +1,4 @@
 {
-  "redirects": [
-    {
-      "source": "https://www.gempodfics.com/(.*)",
-      "destination": "https://gempodfics.com/$1",
-      "permanent": true
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)",
