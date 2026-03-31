@@ -1,7 +1,7 @@
 ---
 import '../styles/global.css';
 import TopBar from '../components/nav/TopBar.astro';
-import { Analytics } from '@vercel/analytics/astro';
+import Analytics from '@vercel/analytics/astro';
 
 interface Props {
   title?: string;
@@ -20,6 +20,11 @@ const isCollection = variant === 'collection';
     <meta name="description" content="My personal audio archive fueled by hyperfixations." />
     <title>{title === 'Gem Podfics' ? title : `${title} — Gem Podfics`}</title>
     <link rel="icon" type="image/png" href="/gempodfics-favicon.png" />
+    <script is:inline>
+      if (!sessionStorage.getItem('gem_gate_passed')) {
+        window.location.replace('/gate');
+      }
+    </script>
   </head>
   <body>
     <TopBar />
