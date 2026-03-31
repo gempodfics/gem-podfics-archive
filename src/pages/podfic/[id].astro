@@ -83,6 +83,20 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
             </span>
           )}
         </div>
+        {p.multiVoice === 'YES' && p.readWithSegments.length > 0 && (
+          <p class="sheet-summary-written">
+            Read with{' '}
+            {p.readWithSegments.map((seg, i) => (
+              <>
+                {seg.href
+                  ? <a href={seg.href} target="_blank" rel="noopener" class="credit-link">{seg.text}</a>
+                  : <span class="credit-name">{seg.text}</span>
+                }
+                {i < p.readWithSegments.length - 1 ? '' : ''}
+              </>
+            ))}
+          </p>
+        )}
         {p.length && (
           <span class="duration-label">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
@@ -269,6 +283,20 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
               {p.artistCredit && (
                 <p class="sheet-summary-written">Art by <span class="credit-name">{p.artistCredit}</span></p>
               )}
+              {p.multiVoice === 'YES' && p.readWithSegments.length > 0 && (
+                <p class="sheet-summary-written">
+                  Read with{' '}
+                  {p.readWithSegments.map((seg, i) => (
+                    <>
+                      {seg.href
+                        ? <a href={seg.href} target="_blank" rel="noopener" class="credit-link">{seg.text}</a>
+                        : <span class="credit-name">{seg.text}</span>
+                      }
+                      {i < p.readWithSegments.length - 1 ? '' : ''}
+                    </>
+                  ))}
+                </p>
+              )}
               <div class="sheet-summary-body">
                 <p class="summary-text" id="sheet-summary-text">{p.summary}</p>
               </div>
@@ -318,6 +346,20 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
             </span>
           )}
         </div>
+        {p.multiVoice === 'YES' && p.readWithSegments.length > 0 && (
+          <p class="sheet-summary-written">
+            Read with{' '}
+            {p.readWithSegments.map((seg, i) => (
+              <>
+                {seg.href
+                  ? <a href={seg.href} target="_blank" rel="noopener" class="credit-link">{seg.text}</a>
+                  : <span class="credit-name">{seg.text}</span>
+                }
+                {i < p.readWithSegments.length - 1 ? '' : ''}
+              </>
+            ))}
+          </p>
+        )}
         {p.length && (
           <span class="duration-label">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>

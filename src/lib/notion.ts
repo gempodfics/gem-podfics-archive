@@ -120,6 +120,17 @@ function mapPodfic(page: any) {
   function richTextUrl(prop: any): string {
     return prop?.rich_text?.[0]?.href ?? "";
   }
+  function richTextSegments(prop: any): { text: string; href?: string }[] {
+    const segments: { text: string; href?: string }[] = [];
+    const blocks: any[] = prop?.rich_text ?? [];
+    for (const block of blocks) {
+      const text = block.plain_text ?? "";
+      if (!text) continue;
+      const href = block.href ?? block.annotations?.href ?? undefined;
+      segments.push(href ? { text, href } : { text });
+    }
+    return segments;
+  }
 
   return {
     id: page.id,
@@ -143,6 +154,8 @@ function mapPodfic(page: any) {
     chapterUrl: url(props["Link To Chapter (Shareable Link)"]),
     asmrSubtag: select(props["ASMR Sub-tag"]),
     collaborators: text(props["Collaborators"]),
+    multiVoice: select(props["Multi-voice?"]),
+    readWithSegments: richTextSegments(props["Read With"]),
     podficLength: select(props["Podfic Length"]),
     totalDuration: text(props["Total Duration"]),
     chapterOrder: props["Chapter Order"]?.number ?? null,

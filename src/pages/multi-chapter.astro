@@ -30,6 +30,7 @@ const durationOrder = [
   '7-7.5 Hours','7.5-8 Hours','8-8.5 Hours','8.5-9 Hours',
 ];
 const allDurations = durationOrder.filter(d => works.some(w => w.rep.podficLength === d));
+const hasMultiVoice = works.some(w => w.rep.multiVoice === 'YES');
 
 const ZOOM_TITLES = new Set([
   'if you don\'t know how to blow, blow for me',
@@ -120,6 +121,19 @@ function chapterLabel(count: number, duration: string | undefined) {
           </div></div>
         </div>
       )}
+      {hasMultiVoice && (
+        <div class="sidebar-group">
+          <button class="group-toggle" aria-expanded="false">
+            <span class="group-label">Voices</span>
+            <svg class="group-chevron" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+          </button>
+          <div class="group-pills"><div class="filter-pills" data-filter="multivoice">
+            <button class="filter-pill active" data-value="">All</button>
+            <button class="filter-pill" data-value="no">Solo</button>
+            <button class="filter-pill" data-value="yes">Multi-voice</button>
+          </div></div>
+        </div>
+      )}
     </div>
     <button class="clear-all-btn" id="clear-filters" style="visibility: hidden">Clear all filters</button>
   </div>
@@ -174,6 +188,7 @@ function chapterLabel(count: number, duration: string | undefined) {
             data-rating={p.rating.toLowerCase()}
             data-relationship={p.coreRelationship.toLowerCase()}
             data-duration={p.podficLength.toLowerCase()}
+            data-multivoice={p.multiVoice === 'YES' ? 'yes' : 'no'}
           >
             <div class="vinyl-wrap">
               <div class="vinyl-record-peek" aria-hidden="true">
@@ -220,6 +235,7 @@ function chapterLabel(count: number, duration: string | undefined) {
             data-rating={p.rating.toLowerCase()}
             data-relationship={p.coreRelationship.toLowerCase()}
             data-duration={p.podficLength.toLowerCase()}
+            data-multivoice={p.multiVoice === 'YES' ? 'yes' : 'no'}
           >
             <div class="row-art">
               <div class="row-record-peek" aria-hidden="true">
@@ -553,7 +569,7 @@ function chapterLabel(count: number, duration: string | undefined) {
   const viewListBtn = document.getElementById('view-list-btn') as HTMLButtonElement;
 
   const activeFilters: Record<string, Set<string>> = {
-    fandom: new Set(), dynamic: new Set(), rating: new Set(), relationship: new Set(), duration: new Set(),
+    fandom: new Set(), dynamic: new Set(), rating: new Set(), relationship: new Set(), duration: new Set(), multivoice: new Set(),
   };
   let sortMode: 'recent' | 'alpha' = 'recent';
 
@@ -595,7 +611,8 @@ function chapterLabel(count: number, duration: string | undefined) {
         (activeFilters.dynamic.size === 0 || activeFilters.dynamic.has(el.dataset.dynamic ?? '')) &&
         (activeFilters.rating.size === 0 || activeFilters.rating.has(el.dataset.rating ?? '')) &&
         (activeFilters.relationship.size === 0 || activeFilters.relationship.has(el.dataset.relationship ?? '')) &&
-        (activeFilters.duration.size === 0 || activeFilters.duration.has(el.dataset.duration ?? ''));
+        (activeFilters.duration.size === 0 || activeFilters.duration.has(el.dataset.duration ?? '')) &&
+        (activeFilters.multivoice.size === 0 || activeFilters.multivoice.has(el.dataset.multivoice ?? ''));
 
       if (passes) visibleIds.add(id);
     });
