@@ -4,20 +4,28 @@ import { getPodficsByType, getPodficById, getChaptersByTitle, formatDuration, re
 
 export async function getStaticPaths() {
   const rows = await getPodficsByType('Multi Chapter');
-  const seen = new Set<string>();
-  const reps: typeof rows = [];
+  // Group by title — every chapter ID gets its own route, all rendering the same page.
+  // This ensures any chapter's ID (e.g. from REC_PAGE_IDS or fandom pages) resolves correctly.
+  const byTitle = new Map<string, typeof rows[0][]>();
   for (const row of rows) {
     const key = row.title.trim();
-    if (!seen.has(key)) {
-      seen.add(key);
-      reps.push(row);
+    if (!byTitle.has(key)) byTitle.set(key, []);
+    byTitle.get(key)!.push(row);
+  }
+  const paths: { params: { id: string }; props: { repId: string } }[] = [];
+  for (const group of byTitle.values()) {
+    const repId = group[0].id;
+    for (const row of group) {
+      paths.push({ params: { id: row.id }, props: { repId } });
     }
   }
-  return reps.map(r => ({ params: { id: r.id } }));
+  return paths;
 }
 
 const { id } = Astro.params;
-const p = await getPodficById(id!);
+const { repId } = Astro.props as { repId: string };
+// Always load data from the representative chapter so all IDs in the group render identically
+const p = await getPodficById(repId ?? id!);
 const rawChapters = await getChaptersByTitle(p.title);
 
 const chapters = await Promise.all(
