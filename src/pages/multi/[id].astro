@@ -60,11 +60,11 @@ function ratingLabel(r: string) {
   <div class="mc-page" id="mc-page" data-player-state="content">
 
     <!-- Back button -->
-    <button class="back-btn" onclick="history.back()" aria-label="Go back">
+    <a href="/multi-chapter" class="back-btn" aria-label="Go back">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
         <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
       </svg>
-    </button>
+    </a>
 
     <!-- ══════════════════════════════════════════════
          MOBILE ONLY — Content page (State 1)
@@ -347,7 +347,7 @@ function ratingLabel(r: string) {
          ══════════════════════════════════════════════ -->
     <aside class="mc-right" id="mc-right">
       <div class="archives-header">
-        <h2 class="archives-title">Archives</h2>
+        <h2 class="archives-title">Chapters</h2>
         <div class="archives-underline"></div>
         <p class="archives-meta">
           {chapterCount} Chapter{chapterCount !== 1 ? 's' : ''}
@@ -428,6 +428,7 @@ function ratingLabel(r: string) {
     color: var(--text-secondary);
     cursor: pointer;
     transition: background 0.2s, color 0.2s;
+    text-decoration: none;
     z-index: 5;
   }
   .back-btn:hover {
@@ -965,7 +966,7 @@ function ratingLabel(r: string) {
       padding: 0;
       max-width: 100%;
       gap: 0;
-      overflow-x: hidden;
+      overflow-x: clip;
     }
 
     .back-btn {
