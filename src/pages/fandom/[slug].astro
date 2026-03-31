@@ -196,7 +196,7 @@ function ratingSlug(r: string) {
       <div class="grid-view" id="podfic-grid">
         {sorted.map((p, i) => (
           <a
-            href={`/podfic/${p.id}`}
+            href={p.type === 'Multi Chapter' ? `/multi/${p.id}` : `/podfic/${p.id}`}
             class="podfic-card"
             data-id={p.id}
             data-index={i}
@@ -255,7 +255,7 @@ function ratingSlug(r: string) {
       <div class="list-view" id="podfic-list">
         {sorted.map((p, i) => (
           <a
-            href={`/podfic/${p.id}`}
+            href={p.type === 'Multi Chapter' ? `/multi/${p.id}` : `/podfic/${p.id}`}
             class="list-row"
             data-id={p.id}
             data-index={i}

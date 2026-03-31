@@ -155,6 +155,13 @@ export async function getPodficById(id: string): Promise<Podfic> {
   return mapPodfic(page as any);
 }
 
+export async function getChaptersByTitle(title: string): Promise<Podfic[]> {
+  const all = await getAllPodfics();
+  return all
+    .filter(p => p.type === 'Multi Chapter' && p.title.trim() === title.trim())
+    .sort((a, b) => a.chapterName.localeCompare(b.chapterName));
+}
+
 // Resolves an archive.org/details URL to a direct MP3 download URL via the IA metadata API.
 // Called at build time so there's no client-side dependency.
 export async function resolveInternetArchiveAudio(detailsUrl: string): Promise<string> {

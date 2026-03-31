@@ -164,7 +164,7 @@ function chapterLabel(count: number, duration: string | undefined) {
       <div class="grid-view" id="work-grid">
         {works.map(({ rep: p, count }, i) => (
           <a
-            href={`/podfic/${p.id}`}
+            href={`/multi/${p.id}`}
             class="podfic-card"
             data-id={p.id}
             data-index={i}
@@ -210,7 +210,7 @@ function chapterLabel(count: number, duration: string | undefined) {
       <div class="list-view" id="work-list">
         {works.map(({ rep: p, count }, i) => (
           <a
-            href={`/podfic/${p.id}`}
+            href={`/multi/${p.id}`}
             class="work-row"
             data-id={p.id}
             data-index={i}

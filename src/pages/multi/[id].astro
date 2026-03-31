@@ -1,0 +1,1437 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getPodficsByType, getPodficById, getChaptersByTitle, formatDuration, resolveInternetArchiveAudio } from '../../lib/notion';
+
+export async function getStaticPaths() {
+  const rows = await getPodficsByType('Multi Chapter');
+  const seen = new Set<string>();
+  const reps: typeof rows = [];
+  for (const row of rows) {
+    const key = row.title.trim();
+    if (!seen.has(key)) {
+      seen.add(key);
+      reps.push(row);
+    }
+  }
+  return reps.map(r => ({ params: { id: r.id } }));
+}
+
+const { id } = Astro.params;
+const p = await getPodficById(id!);
+const rawChapters = await getChaptersByTitle(p.title);
+
+const chapters = await Promise.all(
+  rawChapters.map(async (ch, i) => ({
+    idx: i,
+    chapterName: ch.chapterName,
+    length: ch.length,
+    audioSrc: await resolveInternetArchiveAudio(ch.internetArchiveUrl),
+  }))
+);
+
+const coverImg = p.coverArtUrl || p.commissionedArtUrl || '';
+const hasAudio = chapters.some(ch => !!ch.audioSrc);
+const firstChapterName = chapters[0]?.chapterName ?? p.title;
+const totalDuration = p.totalDuration || '';
+const chapterCount = chapters.length;
+
+function ratingSlug(r: string) {
+  if (r === 'General Audiences') return 'general';
+  if (r === 'Teen and Up') return 'teen';
+  if (r === 'Mature') return 'mature';
+  return 'explicit';
+}
+function ratingLabel(r: string) {
+  if (r === 'General Audiences') return 'General';
+  if (r === 'Teen and Up') return 'Teen & Up';
+  return r;
+}
+---
+
+<Layout title={p.title}>
+  <div class="mc-page" id="mc-page" data-player-state="content">
+
+    <!-- Back button -->
+    <button class="back-btn" onclick="history.back()" aria-label="Go back">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+      </svg>
+    </button>
+
+    <!-- ══════════════════════════════════════════════
+         MOBILE ONLY — Content page (State 1)
+         ══════════════════════════════════════════════ -->
+    <div class="mc-mobile-content" id="mc-mobile-content">
+
+      <!-- Sleeve + record peek artwork -->
+      <div class="content-artwork">
+        <div class="ca-record-peek" aria-hidden="true">
+          <div class="ca-record-dot"></div>
+        </div>
+        <div class="ca-sleeve">
+          {coverImg
+            ? <img src={coverImg} alt={p.title} class="ca-img" />
+            : <div class="ca-placeholder"></div>
+          }
+          {p.rating && (
+            <span class={`rating-badge rating-${ratingSlug(p.rating)}`}>
+              {ratingLabel(p.rating)}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <!-- Title + meta -->
+      <div class="mobile-meta">
+        <div class="meta-badges">
+          {p.fandoms.map(f => <span class="fandom-pill">{f}</span>)}
+          {p.dynamic && <span class="dynamic-pill">{p.dynamic}</span>}
+        </div>
+        <h1 class="player-title">{p.title}</h1>
+        <div class="player-credits">
+          {p.artistCredit && (
+            <span class="credit-item">Art by <span class="credit-name">{p.artistCredit}</span></span>
+          )}
+          {p.artistCredit && p.writtenBy && <span class="credit-sep">·</span>}
+          {p.writtenBy && (
+            <span class="credit-item">
+              Written by{' '}
+              {p.writtenByUrl
+                ? <a href={p.writtenByUrl} target="_blank" rel="noopener" class="credit-link">{p.writtenBy}</a>
+                : <span class="credit-name">{p.writtenBy}</span>
+              }
+            </span>
+          )}
+        </div>
+        {totalDuration && (
+          <span class="duration-label">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
+            {formatDuration(totalDuration)}
+          </span>
+        )}
+      </div>
+
+      <!-- Tab bar -->
+      <div class="tab-bar">
+        <button class="tab-btn" id="tab-summary">Summary</button>
+        <button class="tab-btn active" id="tab-chapters">Chapters</button>
+      </div>
+
+      <!-- Summary panel -->
+      <div class="tab-panel hidden" id="panel-summary">
+        {p.summary && (
+          <div class="summary-section no-top-border">
+            <div class="summary-body">
+              <p class="summary-text">{p.summary}</p>
+            </div>
+            {p.ao3Url && (
+              <a href={p.ao3Url} target="_blank" rel="noopener" class="ao3-link">
+                Access on AO3
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 19H5V5h7V3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+              </a>
+            )}
+          </div>
+        )}
+      </div>
+
+      <!-- Chapters panel (mobile) -->
+      <div class="tab-panel" id="panel-chapters">
+        <div class="chapters-list" id="chapters-list-mobile">
+          {chapters.map((ch, i) => (
+            <div
+              class="chapter-row"
+              data-chapter-idx={String(i)}
+              role="button"
+              tabindex="0"
+              aria-label={`Play ${ch.chapterName}`}
+            >
+              <span class="chapter-num">{String(i + 1).padStart(2, '0')}</span>
+              <span class="chapter-name">{ch.chapterName}</span>
+              <span class="chapter-dur">{ch.length ? formatDuration(ch.length) : ''}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+    </div><!-- /mc-mobile-content -->
+
+    <!-- ══════════════════════════════════════════════
+         PLAYER SHEET
+         Mobile: full-screen overlay, slides up on chapter tap
+         Desktop: transparent left-column wrapper
+         ══════════════════════════════════════════════ -->
+    <div class="player-sheet" id="player-sheet">
+
+      <!-- Dismiss handle (mobile only) -->
+      <button class="sheet-dismiss-btn" id="sheet-dismiss-btn" aria-label="Dismiss player">
+        <div class="sheet-handle"></div>
+      </button>
+
+      <!-- Sheet title row: current chapter name (mobile only) -->
+      <div class="sheet-title-row">
+        <div class="sheet-title-marquee" id="sheet-title-marquee">
+          <span class="sheet-title-text" id="sheet-title-text">{firstChapterName}</span>
+        </div>
+      </div>
+
+      <!-- Left column: turntable + controls + desktop metadata -->
+      <div class="player-left">
+
+        <!-- Turntable assembly -->
+        <div class="turntable-assembly">
+          <div class="plinth-surface">
+            <div class="vinyl-stage">
+              <div class="vinyl-disc" id="vinyl-disc">
+                <div class="vinyl-label">
+                  {coverImg
+                    ? <img src={coverImg} alt={p.title} class="label-img" />
+                    : <div class="label-placeholder"><svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" opacity="0.3" aria-hidden="true"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg></div>
+                  }
+                </div>
+                <div class="vinyl-sheen" aria-hidden="true"></div>
+              </div>
+
+              <svg class="tonearm-svg" id="tonearm-svg" viewBox="0 0 200 200" aria-hidden="true">
+                <defs>
+                  <linearGradient id="arm-grad" x1="0%" y1="50%" x2="100%" y2="50%">
+                    <stop offset="0%"   stop-color="#909090"/>
+                    <stop offset="18%"  stop-color="#f4f4ff"/>
+                    <stop offset="40%"  stop-color="#808080"/>
+                    <stop offset="58%"  stop-color="#383840"/>
+                    <stop offset="76%"  stop-color="#787890"/>
+                    <stop offset="100%" stop-color="#9898b0"/>
+                  </linearGradient>
+                  <radialGradient id="cw-grad" cx="33%" cy="28%" r="68%">
+                    <stop offset="0%"   stop-color="#d8d8e8"/>
+                    <stop offset="45%"  stop-color="#7070a0"/>
+                    <stop offset="100%" stop-color="#1c1c2c"/>
+                  </radialGradient>
+                  <radialGradient id="pivot-outer-grad" cx="30%" cy="25%" r="75%">
+                    <stop offset="0%"   stop-color="#5a5a78"/>
+                    <stop offset="55%"  stop-color="#222238"/>
+                    <stop offset="100%" stop-color="#0c0c1c"/>
+                  </radialGradient>
+                  <radialGradient id="pivot-grad" cx="35%" cy="30%" r="70%">
+                    <stop offset="0%"   stop-color="#e8e8ff"/>
+                    <stop offset="40%"  stop-color="#9898b8"/>
+                    <stop offset="100%" stop-color="#28283a"/>
+                  </radialGradient>
+                </defs>
+                <g id="tonearm-group" class="tonearm raised">
+                  <g transform="translate(26, 10) rotate(-27)">
+                    <rect x="-3" y="-18" width="6" height="18" rx="3" fill="url(#arm-grad)"/>
+                    <rect x="-10" y="-32" width="20" height="14" rx="3.5" fill="url(#cw-grad)"/>
+                    <rect x="-9" y="-31" width="13" height="4" rx="1.5" fill="rgba(255,255,255,0.28)" opacity="0.85"/>
+                    <rect x="-3.5" y="0" width="7" height="67" rx="3.5" fill="url(#arm-grad)"/>
+                    <rect x="-0.5" y="2" width="3.5" height="63" rx="2" fill="rgba(0,0,0,0.22)"/>
+                    <rect x="-3" y="2" width="1.8" height="63" rx="1" fill="rgba(255,255,255,0.40)" opacity="0.7"/>
+                    <g id="needle-head-lights">
+                      <circle cx="0" cy="67" r="5.5" fill="url(#cw-grad)"/>
+                      <circle cx="-2" cy="65" r="1.8" fill="rgba(255,255,255,0.65)"/>
+                      <rect x="-7" y="70" width="14" height="14" rx="2.5" fill="url(#cw-grad)"/>
+                      <rect x="-6" y="71" width="10" height="4.5" rx="1.5" fill="rgba(255,255,255,0.32)"/>
+                      <line x1="0" y1="84" x2="0" y2="88" stroke="#b0b0c8" stroke-width="1.5" stroke-linecap="round"/>
+                      <line x1="-0.5" y1="84" x2="-0.5" y2="88" stroke="rgba(255,255,255,0.28)" stroke-width="0.5" stroke-linecap="round"/>
+                    </g>
+                  </g>
+                </g>
+                <circle cx="26" cy="10" r="13" fill="url(#pivot-outer-grad)"/>
+                <circle cx="26" cy="10" r="10" fill="#18182a"/>
+                <circle cx="26" cy="10" r="8"  fill="url(#pivot-grad)"/>
+                <circle cx="26" cy="10" r="3.5" fill="#14141e"/>
+                <circle cx="26" cy="10" r="2"  fill="url(#pivot-grad)"/>
+                <circle cx="24" cy="8"  r="1.8" fill="rgba(255,255,255,0.65)" opacity="0.6"/>
+                <circle cx="25" cy="7"  r="0.7" fill="rgba(255,255,255,0.92)"/>
+              </svg>
+            </div>
+          </div>
+        </div><!-- /turntable-assembly -->
+
+        <!-- Playback controls -->
+        <div class="controls">
+          <div class="control-row">
+            <button class="speed-cycle-btn" id="speed-cycle-btn" aria-label="Playback speed">1×</button>
+            <button class="ctrl-btn" id="skip-back" aria-label="Skip back 15 seconds">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+              <span class="ctrl-label">15</span>
+            </button>
+            <button class="play-btn" id="play-btn" aria-label="Play" {!hasAudio && 'disabled'}>
+              <svg id="icon-play" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+              <svg id="icon-pause" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </button>
+            <button class="ctrl-btn" id="skip-fwd" aria-label="Skip forward 15 seconds">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 13c0 3.31-2.69 6-6 6s-6-2.69-6-6 2.69-6 6-6v4l5-5-5-5v4c-4.42 0-8 3.58-8 8s3.58 8 8 8 8-3.58 8-8h-2z"/></svg>
+              <span class="ctrl-label">15</span>
+            </button>
+            <button class="mute-btn" id="mute-btn" aria-label="Mute">
+              <svg id="icon-unmuted" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+              <svg id="icon-muted" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="display:none"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+            </button>
+          </div>
+          <div class="scrubber-row">
+            <span class="time-label" id="time-elapsed">0:00</span>
+            <div class="scrubber-track" id="scrubber-track" role="slider" aria-label="Audio progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+              <div class="scrubber-fill" id="scrubber-fill"></div>
+              <div class="scrubber-thumb" id="scrubber-thumb"></div>
+            </div>
+            <span class="time-label" id="time-total">--:--</span>
+          </div>
+          {!hasAudio && (
+            <p class="no-audio-msg">Audio not yet available for this podfic.</p>
+          )}
+        </div><!-- /controls -->
+
+        <!-- Desktop only: metadata below controls in left column -->
+        <div class="mc-desktop-meta">
+          <div class="meta-badges">
+            {p.rating && (
+              <span class={`rating-badge rating-${ratingSlug(p.rating)}`}>
+                {ratingLabel(p.rating)}
+              </span>
+            )}
+            {p.fandoms.map(f => <span class="fandom-pill">{f}</span>)}
+            {p.dynamic && <span class="dynamic-pill">{p.dynamic}</span>}
+          </div>
+          <h1 class="player-title">{p.title}</h1>
+          <div class="player-credits">
+            {p.artistCredit && (
+              <span class="credit-item">Art by <span class="credit-name">{p.artistCredit}</span></span>
+            )}
+            {p.artistCredit && p.writtenBy && <span class="credit-sep">·</span>}
+            {p.writtenBy && (
+              <span class="credit-item">
+                Written by{' '}
+                {p.writtenByUrl
+                  ? <a href={p.writtenByUrl} target="_blank" rel="noopener" class="credit-link">{p.writtenBy}</a>
+                  : <span class="credit-name">{p.writtenBy}</span>
+                }
+              </span>
+            )}
+          </div>
+          {totalDuration && (
+            <span class="duration-label">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
+              {formatDuration(totalDuration)}
+            </span>
+          )}
+          {p.summary && (
+            <div class="summary-section">
+              <h2 class="summary-heading">Summary</h2>
+              <div class="summary-body">
+                <p class="summary-text">{p.summary}</p>
+              </div>
+              {p.ao3Url && (
+                <a href={p.ao3Url} target="_blank" rel="noopener" class="ao3-link">
+                  Access on AO3
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 19H5V5h7V3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+                </a>
+              )}
+            </div>
+          )}
+        </div><!-- /mc-desktop-meta -->
+
+      </div><!-- /player-left -->
+
+    </div><!-- /player-sheet -->
+
+    <!-- ══════════════════════════════════════════════
+         DESKTOP ONLY — Right column chapter panel
+         ══════════════════════════════════════════════ -->
+    <aside class="mc-right" id="mc-right">
+      <div class="archives-header">
+        <h2 class="archives-title">Archives</h2>
+        <div class="archives-underline"></div>
+        <p class="archives-meta">
+          {chapterCount} Chapter{chapterCount !== 1 ? 's' : ''}
+          {totalDuration ? ` · ${formatDuration(totalDuration)}` : ''}
+        </p>
+      </div>
+      <div class="chapters-list" id="chapters-list-desktop">
+        {chapters.map((ch, i) => (
+          <div
+            class="chapter-row"
+            data-chapter-idx={String(i)}
+            role="button"
+            tabindex="0"
+            aria-label={`Play ${ch.chapterName}`}
+          >
+            <span class="chapter-num">{String(i + 1).padStart(2, '0')}</span>
+            <span class="chapter-name">{ch.chapterName}</span>
+            <span class="chapter-dur">{ch.length ? formatDuration(ch.length) : ''}</span>
+          </div>
+        ))}
+      </div>
+    </aside>
+
+    <!-- ══════════════════════════════════════════════
+         MOBILE ONLY — Mini-player bar
+         ══════════════════════════════════════════════ -->
+    <div class="mini-player-bar" id="mini-player-bar" aria-hidden="true">
+      <div class="mini-art">
+        {coverImg
+          ? <img src={coverImg} alt={p.title} class="mini-img" />
+          : <div class="mini-placeholder"></div>
+        }
+      </div>
+      <span class="mini-title" id="mini-title">{firstChapterName}</span>
+      <button class="mini-play-btn" id="mini-play-btn" aria-label="Play">
+        <svg id="mini-icon-play" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+        <svg id="mini-icon-pause" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+      </button>
+    </div>
+
+    <!-- Audio element (src set dynamically by JS) -->
+    <audio id="audio-player" preload="none"></audio>
+
+  </div>
+</Layout>
+
+<style>
+  /* ══════════════════════════════════════════════
+     PAGE SHELL
+     ══════════════════════════════════════════════ */
+  .mc-page {
+    position: relative;
+    min-height: calc(100vh - 52px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1rem 1.25rem 4rem;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  /* ══════════════════════════════════════════════
+     BACK BUTTON
+     ══════════════════════════════════════════════ */
+  .back-btn {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--bg-surface);
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    z-index: 5;
+  }
+  .back-btn:hover {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+  }
+
+  /* ══════════════════════════════════════════════
+     MOBILE CONTENT (State 1) — hidden on desktop
+     ══════════════════════════════════════════════ */
+  .mc-mobile-content {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    width: 100%;
+    padding: 3rem 1.25rem 80px;
+  }
+
+  /* ── Content artwork (sleeve + record peek) ── */
+  .content-artwork {
+    position: relative;
+    width: min(280px, 72vw);
+    flex-shrink: 0;
+  }
+  .ca-sleeve {
+    position: relative;
+    width: 74%;
+    aspect-ratio: 1 / 1;
+    z-index: 2;
+  }
+  .ca-img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.07);
+  }
+  .ca-placeholder {
+    width: 100%; height: 100%;
+    border-radius: 8px;
+    background: radial-gradient(circle, var(--bg-elevated) 0%, var(--bg-surface) 100%);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.07);
+  }
+  .ca-record-peek {
+    position: absolute;
+    top: 0; right: 0;
+    width: 74%;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    z-index: 1;
+    background:
+      radial-gradient(ellipse at 32% 28%, rgba(255,255,255,0.07) 0%, transparent 48%),
+      repeating-radial-gradient(circle at center, transparent, transparent 7px, rgba(255,255,255,0.04) 7px, rgba(255,255,255,0.04) 8px),
+      radial-gradient(circle at center, #2e2e2e 0%, #222 30%, #181818 60%, #0d0d0d 100%);
+    box-shadow: 4px 4px 16px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(255,255,255,0.05);
+  }
+  .ca-record-dot {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 13%; aspect-ratio: 1 / 1; border-radius: 50%;
+    background: radial-gradient(circle, #2c2c2c 0%, #181818 100%);
+    border: 1.5px solid rgba(255,255,255,0.1);
+  }
+  .ca-sleeve .rating-badge {
+    position: absolute; top: -2px; right: -2px;
+    font-size: 0.65rem; font-weight: 800; line-height: 1;
+    padding: 0.25rem 0.5rem; border-radius: 0.25rem;
+    letter-spacing: 0.04em; z-index: 3;
+  }
+
+  /* ── Mobile meta ── */
+  .mobile-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    text-align: center;
+    width: 100%;
+  }
+
+  /* ── Tab bar ── */
+  .tab-bar {
+    display: flex;
+    width: 100%;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    margin-top: 0.25rem;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 0.7rem 0;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+    margin-bottom: -1px;
+  }
+  .tab-btn.active {
+    color: var(--text-primary);
+    border-bottom-color: var(--accent-pink);
+  }
+
+  /* ── Tab panels ── */
+  .tab-panel {
+    width: 100%;
+  }
+  .tab-panel.hidden {
+    display: none;
+  }
+
+  /* ══════════════════════════════════════════════
+     CHAPTER LIST ROWS (shared: mobile + desktop)
+     ══════════════════════════════════════════════ */
+  .chapters-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .chapter-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 0.5rem;
+    border-radius: 8px;
+    border-left: 3px solid transparent;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    user-select: none;
+  }
+  .chapter-row:hover {
+    background: var(--bg-elevated);
+  }
+  .chapter-row:focus-visible {
+    outline: 2px solid var(--accent-pink);
+    outline-offset: 2px;
+  }
+  .chapter-row.active {
+    border-left-color: var(--accent-pink);
+    background: rgba(232, 88, 138, 0.08);
+  }
+  .chapter-num {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    min-width: 1.6rem;
+    text-align: right;
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .chapter-row.active .chapter-num {
+    color: var(--accent-pink);
+  }
+  .chapter-name {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .chapter-row.active .chapter-name {
+    color: var(--text-primary);
+    font-weight: 700;
+  }
+  .chapter-dur {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  /* ══════════════════════════════════════════════
+     PLAYER SHEET WRAPPER
+     Mobile: fixed full-screen overlay
+     Desktop: transparent left-column wrapper
+     ══════════════════════════════════════════════ */
+  .player-sheet {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+
+  /* ── Sheet dismiss handle (mobile only) ── */
+  .sheet-dismiss-btn {
+    display: none;
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 1rem 0 0.5rem;
+    cursor: pointer;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .sheet-handle {
+    width: 2.5rem; height: 4px;
+    background: rgba(255,255,255,0.18);
+    border-radius: 2px;
+  }
+
+  /* ── Sheet title row (mobile only) ── */
+  .sheet-title-row {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    padding: 0.25rem 1.25rem 0;
+    text-align: center;
+  }
+  .sheet-title-marquee {
+    overflow: hidden;
+    white-space: nowrap;
+    width: 100%;
+  }
+  .sheet-title-text {
+    display: inline-block;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    white-space: nowrap;
+  }
+  .sheet-title-text.marquee-active {
+    animation: sheet-marquee 10s ease-in-out infinite;
+  }
+  @keyframes sheet-marquee {
+    0%, 20%  { transform: translateX(0); }
+    80%, 100% { transform: translateX(var(--marquee-offset, 0)); }
+  }
+
+  /* ══════════════════════════════════════════════
+     LEFT COLUMN: TURNTABLE + CONTROLS
+     ══════════════════════════════════════════════ */
+  .player-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    width: 100%;
+  }
+
+  /* ── Turntable assembly ── */
+  .turntable-assembly {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: min(460px, 96vw);
+    margin-top: 2rem;
+    flex-shrink: 0;
+  }
+  .plinth-surface {
+    width: 100%;
+    padding: 40px 28px 24px 28px;
+    border-radius: 10px;
+    overflow: visible;
+    background:
+      repeating-linear-gradient(
+        177deg,
+        transparent        0px,
+        transparent        3px,
+        rgba(0,0,0,0.13)   3px,
+        rgba(0,0,0,0.13)   4px,
+        transparent        4px,
+        transparent        9px,
+        rgba(0,0,0,0.07)   9px,
+        rgba(0,0,0,0.07)  10px,
+        transparent       10px,
+        transparent       15px,
+        rgba(220,150,80,0.06) 15px,
+        rgba(220,150,80,0.06) 16px,
+        transparent       16px,
+        transparent       22px
+      ),
+      linear-gradient(155deg,
+        #5e3420 0%, #472512 12%, #3c1e0c 30%,
+        #4a2810 55%, #3a1e0c 80%, #2e1608 100%
+      );
+    box-shadow:
+      inset 0 1px 0 rgba(220,160,90,0.18),
+      inset 0 -3px 10px rgba(0,0,0,0.35),
+      0 0 0 1px rgba(0,0,0,0.55),
+      0 4px 0 #130b02,
+      0 7px 0 #0c0701,
+      0 10px 28px rgba(0,0,0,0.80),
+      0 20px 50px rgba(0,0,0,0.45);
+  }
+  .vinyl-stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+  }
+  .vinyl-disc {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background:
+      repeating-radial-gradient(
+        circle at center,
+        #0f0f14 0px, #0f0f14 5px,
+        #181820 5px, #181820 6px
+      );
+    box-shadow:
+      inset 0 0 30px rgba(0,0,0,0.6),
+      0 0 0 1px rgba(255,255,255,0.04),
+      0 0 0 transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: vinyl-spin 4s linear infinite;
+    animation-play-state: paused;
+    transition: box-shadow 1.4s ease;
+  }
+  .vinyl-disc.glowing {
+    box-shadow:
+      inset 0 0 30px rgba(0,0,0,0.6),
+      0 0 0 1px rgba(255,255,255,0.04),
+      0 0  20px rgba(232, 88, 138, 0.55),
+      0 0  50px rgba(232, 88, 138, 0.35),
+      0 0 100px rgba(232, 88, 138, 0.18);
+  }
+  @keyframes vinyl-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  .vinyl-sheen {
+    position: absolute; inset: 0; border-radius: 50%;
+    pointer-events: none; z-index: 1;
+    background:
+      radial-gradient(ellipse 58% 38% at 30% 26%, rgba(255,255,255,0.11) 0%, rgba(255,255,255,0.05) 45%, transparent 72%),
+      radial-gradient(ellipse 28% 44% at 80% 72%, rgba(255,255,255,0.06) 0%, transparent 62%),
+      conic-gradient(from 205deg at 50% 50%,
+        transparent 0deg, rgba(190,160,255,0.05) 35deg, rgba(155,205,255,0.04) 75deg,
+        transparent 110deg, transparent 200deg, rgba(255,185,220,0.04) 258deg, transparent 300deg);
+    mix-blend-mode: screen;
+  }
+  .vinyl-label {
+    width: 36%; height: 36%;
+    border-radius: 50%; overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.08);
+    background: var(--bg-elevated);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .label-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .label-placeholder { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+
+  .tonearm-svg {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    pointer-events: none; overflow: visible;
+  }
+  .tonearm {
+    transform-origin: 26px 10px;
+    transition: transform 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .tonearm.raised   { transform: rotate(-75deg); }
+  .tonearm.on-groove { transform: rotate(0deg); }
+  #needle-head-lights { transition: filter 1.4s ease; }
+  .tonearm-svg.glowing #needle-head-lights {
+    filter: drop-shadow(0 0 5px #E8588A) drop-shadow(0 0 10px rgba(232,88,138,0.6));
+  }
+
+  /* ── Controls ── */
+  .controls {
+    width: 100%;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+  .control-row { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+  .speed-cycle-btn {
+    font-size: 0.82rem; font-weight: 700; min-width: 2.5rem; text-align: center;
+    background: none; border: none; color: var(--text-secondary);
+    cursor: pointer; padding: 0.4rem; border-radius: 4px; transition: color 0.15s; flex-shrink: 0;
+  }
+  .speed-cycle-btn:hover { color: var(--text-primary); }
+  .mute-btn {
+    display: flex; align-items: center; justify-content: center;
+    background: none; border: none; color: var(--text-secondary);
+    cursor: pointer; padding: 0.4rem; border-radius: 50%; transition: color 0.15s; flex-shrink: 0;
+  }
+  .mute-btn:hover { color: var(--text-primary); }
+  .ctrl-btn {
+    position: relative; display: flex; flex-direction: column;
+    align-items: center; gap: 0; background: none; border: none;
+    color: var(--text-secondary); cursor: pointer;
+    padding: 0.5rem; border-radius: 50%; transition: color 0.15s;
+  }
+  .ctrl-btn:hover { color: var(--text-primary); }
+  .ctrl-label { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.02em; line-height: 1; margin-top: -4px; }
+  .play-btn {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: var(--accent-pink); border: none; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: background 0.15s, transform 0.1s;
+    box-shadow: 0 4px 20px rgba(232, 88, 138, 0.4); flex-shrink: 0;
+  }
+  .play-btn:hover { background: var(--accent-pink-hover); transform: scale(1.05); }
+  .play-btn:active { transform: scale(0.97); }
+  .play-btn:disabled { background: var(--bg-elevated); box-shadow: none; cursor: not-allowed; }
+
+  .scrubber-row { display: flex; align-items: center; gap: 0.75rem; width: 100%; }
+  .time-label { font-size: 0.72rem; font-variant-numeric: tabular-nums; color: var(--text-muted); min-width: 2.6rem; white-space: nowrap; }
+  #time-elapsed { text-align: right; }
+  #time-total   { text-align: left; }
+  .scrubber-track {
+    position: relative; flex: 1; height: 4px;
+    border-radius: 2px; background: var(--bg-elevated); cursor: pointer;
+  }
+  .scrubber-track:hover .scrubber-thumb { opacity: 1; transform: translateX(-50%) scale(1); }
+  .scrubber-fill {
+    position: absolute; top: 0; left: 0; height: 100%; width: 0%;
+    border-radius: 2px; background: var(--accent-pink); pointer-events: none;
+  }
+  .scrubber-thumb {
+    position: absolute; top: 50%; left: 0%; width: 12px; height: 12px;
+    border-radius: 50%; background: var(--accent-pink);
+    transform: translateX(-50%) scale(0.7); transform-origin: center;
+    opacity: 0; transition: opacity 0.15s, transform 0.15s; pointer-events: none;
+  }
+  .no-audio-msg { font-size: 0.82rem; color: var(--text-muted); text-align: center; font-style: italic; }
+
+  /* ── Desktop metadata under controls ── */
+  .mc-desktop-meta {
+    display: none;
+  }
+
+  /* ══════════════════════════════════════════════
+     SHARED META / SUMMARY STYLES
+     ══════════════════════════════════════════════ */
+  .meta-badges {
+    display: flex; flex-wrap: wrap; gap: 0.4rem;
+    justify-content: center; align-items: center;
+  }
+  .rating-badge {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em;
+    padding: 0.2rem 0.55rem; border-radius: 999px; text-transform: uppercase;
+  }
+  .rating-general  { background: #6FCF97; color: #0a1a10; }
+  .rating-teen     { background: #F2C94C; color: #1a1200; }
+  .rating-mature   { background: #F2994A; color: #1a0800; }
+  .rating-explicit { background: #EB5757; color: #1a0000; }
+  .fandom-pill, .dynamic-pill {
+    font-size: 0.7rem; padding: 0.2rem 0.55rem; border-radius: 999px;
+    background: var(--bg-elevated); color: var(--text-secondary);
+  }
+  .player-title {
+    font-size: clamp(1.3rem, 5vw, 2rem); font-weight: 800;
+    color: var(--text-primary); line-height: 1.2; margin: 0;
+  }
+  .player-credits {
+    display: flex; flex-wrap: wrap; gap: 0.35rem;
+    align-items: center; justify-content: center;
+    font-size: 0.82rem; color: var(--text-muted);
+  }
+  .credit-name { color: var(--text-secondary); }
+  .credit-link { color: var(--accent-pink); text-decoration: none; }
+  .credit-link:hover { text-decoration: underline; }
+  .credit-sep { color: var(--text-muted); }
+  .duration-label {
+    display: flex; align-items: center; gap: 0.3rem;
+    font-size: 0.78rem; color: var(--text-muted);
+  }
+  .summary-section {
+    width: 100%; display: flex; flex-direction: column; gap: 0.75rem;
+    border-top: 1px solid var(--bg-elevated); padding-top: 1.25rem;
+  }
+  .summary-section.no-top-border {
+    border-top: none;
+    padding-top: 0.5rem;
+  }
+  .summary-heading {
+    font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-muted); margin: 0;
+  }
+  .summary-body { display: flex; flex-direction: column; gap: 0.5rem; }
+  .summary-text {
+    font-size: 0.9rem; line-height: 1.65; color: var(--text-primary); margin: 0;
+    white-space: pre-line;
+  }
+  .ao3-link {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    font-size: 0.82rem; font-weight: 600; color: var(--accent-pink);
+    text-decoration: none; border: 1px solid var(--accent-pink);
+    border-radius: 999px; padding: 0.4rem 1rem; align-self: flex-start;
+    transition: background 0.15s;
+  }
+  .ao3-link:hover { background: rgba(232, 88, 138, 0.1); }
+
+  /* ══════════════════════════════════════════════
+     DESKTOP RIGHT COLUMN (chapter panel)
+     ══════════════════════════════════════════════ */
+  .mc-right {
+    display: none;
+  }
+  .archives-header {
+    margin-bottom: 1.25rem;
+    flex-shrink: 0;
+  }
+  .archives-title {
+    font-size: 1.3rem; font-weight: 800;
+    color: var(--text-primary); margin: 0 0 0.4rem;
+  }
+  .archives-underline {
+    width: 2.5rem; height: 3px;
+    background: var(--accent-pink);
+    border-radius: 2px;
+    margin-bottom: 0.5rem;
+  }
+  .archives-meta {
+    font-size: 0.72rem; color: var(--text-muted);
+    letter-spacing: 0.06em; text-transform: uppercase;
+    font-weight: 600; margin: 0;
+  }
+
+  /* ══════════════════════════════════════════════
+     MINI-PLAYER BAR (mobile only)
+     ══════════════════════════════════════════════ */
+  .mini-player-bar {
+    display: none;
+  }
+
+  /* ══════════════════════════════════════════════
+     MOBILE LAYOUT  (< 768px)
+     ══════════════════════════════════════════════ */
+  @media (max-width: 767px) {
+    .mc-page {
+      padding: 0;
+      max-width: 100%;
+      gap: 0;
+      overflow-x: hidden;
+    }
+
+    .back-btn {
+      position: fixed;
+      top: calc(52px + 0.75rem);
+      left: 0.75rem;
+      z-index: 10;
+      background: rgba(14, 10, 20, 0.85);
+      backdrop-filter: blur(6px);
+    }
+
+    /* Show mobile content */
+    .mc-mobile-content {
+      display: flex;
+    }
+
+    /* Player sheet: fixed overlay, slides up from bottom */
+    .player-sheet {
+      position: fixed;
+      inset: 0;
+      top: 52px;
+      z-index: 100;
+      background: var(--bg-primary);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      transform: translateY(100%);
+      transition: transform 0.35s ease;
+      padding-bottom: 1rem;
+    }
+    .mc-page[data-player-state="open"] .player-sheet {
+      transform: translateY(0);
+    }
+    .mc-page[data-player-state="open"] .mc-mobile-content {
+      visibility: hidden;
+    }
+
+    /* Show dismiss button + sheet title row */
+    .sheet-dismiss-btn {
+      display: flex;
+    }
+    .sheet-title-row {
+      display: flex;
+    }
+
+    .player-left {
+      padding: 0 1.25rem 2rem;
+    }
+    .turntable-assembly {
+      width: min(380px, 88vw);
+      margin-top: 0.5rem;
+    }
+    .controls {
+      max-width: 100%;
+    }
+
+    /* Mini-player bar */
+    .mini-player-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 68px;
+      background: var(--bg-surface);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0 1rem;
+      z-index: 50;
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+    }
+    .mini-player-bar.visible {
+      transform: translateY(0);
+    }
+    .mini-art {
+      width: 44px; height: 44px; border-radius: 6px; overflow: hidden; flex-shrink: 0;
+      background: var(--bg-elevated);
+    }
+    .mini-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .mini-placeholder { width: 100%; height: 100%; background: var(--bg-elevated); }
+    .mini-title {
+      flex: 1; min-width: 0;
+      font-size: 0.85rem; font-weight: 600; color: var(--text-primary);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .mini-play-btn {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: var(--accent-pink); border: none; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0;
+      transition: background 0.15s, transform 0.1s;
+      box-shadow: 0 2px 10px rgba(232, 88, 138, 0.4);
+    }
+    .mini-play-btn:hover { background: var(--accent-pink-hover); transform: scale(1.05); }
+    .mini-play-btn:active { transform: scale(0.97); }
+  }
+
+  /* ══════════════════════════════════════════════
+     DESKTOP LAYOUT  (≥ 768px)
+     ══════════════════════════════════════════════ */
+  @media (min-width: 768px) {
+    /* Hide mobile-only elements */
+    .mc-mobile-content  { display: none !important; }
+    .mini-player-bar    { display: none !important; }
+    .sheet-dismiss-btn  { display: none !important; }
+    .sheet-title-row    { display: none !important; }
+
+    /* Back button: fixed top-left */
+    .back-btn {
+      position: fixed;
+      top: 64px;
+      left: 1rem;
+      z-index: 10;
+    }
+
+    /* Two-column page layout */
+    .mc-page {
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 2.5rem;
+      max-width: 1140px;
+      padding: 2rem 2rem 4rem;
+    }
+
+    /* Player sheet = left column */
+    .player-sheet {
+      flex: 0 0 auto;
+      width: min(460px, 48vw);
+    }
+
+    .player-left {
+      width: 100%;
+    }
+
+    .turntable-assembly {
+      width: 100%;
+      margin-top: 0;
+    }
+
+    .controls {
+      max-width: 100%;
+      width: 100%;
+    }
+
+    /* Desktop metadata below controls */
+    .mc-desktop-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+      width: 100%;
+      margin-top: 0.5rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid rgba(255,255,255,0.07);
+    }
+    .mc-desktop-meta .meta-badges { justify-content: flex-start; }
+    .mc-desktop-meta .player-credits { justify-content: flex-start; }
+    .mc-desktop-meta .summary-section { border-top-color: rgba(255,255,255,0.07); }
+
+    /* Right column: sticky chapter panel */
+    .mc-right {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-width: 280px;
+      background: var(--bg-surface);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 1.75rem 1.5rem 2rem;
+      max-height: calc(100vh - 6rem);
+      overflow-y: auto;
+      position: sticky;
+      top: calc(52px + 1rem);
+    }
+
+    /* Desktop chapter rows have a bit more room */
+    .chapter-row {
+      padding: 0.9rem 0.75rem;
+    }
+  }
+</style>
+
+<script define:vars={{ chapters, hasAudio }}>
+  // ── Element refs ──
+  const mcPage       = document.getElementById('mc-page');
+  const disc         = document.getElementById('vinyl-disc');
+  const tonearm      = document.getElementById('tonearm-group');
+  const tonearmSvg   = document.getElementById('tonearm-svg');
+  const playBtn      = document.getElementById('play-btn');
+  const iconPlay     = document.getElementById('icon-play');
+  const iconPause    = document.getElementById('icon-pause');
+  const skipBack     = document.getElementById('skip-back');
+  const skipFwd      = document.getElementById('skip-fwd');
+  const scrubTrack   = document.getElementById('scrubber-track');
+  const scrubFill    = document.getElementById('scrubber-fill');
+  const scrubThumb   = document.getElementById('scrubber-thumb');
+  const timeElapsed  = document.getElementById('time-elapsed');
+  const timeTotal    = document.getElementById('time-total');
+  const audio        = document.getElementById('audio-player');
+
+  // ── Mobile refs ──
+  const sheetDismissBtn = document.getElementById('sheet-dismiss-btn');
+  const miniPlayerBar   = document.getElementById('mini-player-bar');
+  const miniPlayBtn     = document.getElementById('mini-play-btn');
+  const miniIconPlay    = document.getElementById('mini-icon-play');
+  const miniIconPause   = document.getElementById('mini-icon-pause');
+  const miniTitle       = document.getElementById('mini-title');
+  const sheetTitleText  = document.getElementById('sheet-title-text');
+
+  // ── State ──
+  let currentIdx = -1;
+  let hasStarted = false;
+  let armLanded = false;
+
+  // ── Sheet ──
+  function openSheet() {
+    mcPage?.setAttribute('data-player-state', 'open');
+  }
+  function closeSheet() {
+    mcPage?.setAttribute('data-player-state', 'content');
+    if (hasStarted) {
+      miniPlayerBar?.classList.add('visible');
+      miniPlayerBar?.removeAttribute('aria-hidden');
+    }
+  }
+  sheetDismissBtn?.addEventListener('click', closeSheet);
+
+  // ── Tabs ──
+  const tabSummary    = document.getElementById('tab-summary');
+  const tabChapters   = document.getElementById('tab-chapters');
+  const panelSummary  = document.getElementById('panel-summary');
+  const panelChapters = document.getElementById('panel-chapters');
+
+  tabSummary?.addEventListener('click', () => {
+    tabSummary.classList.add('active');
+    tabChapters?.classList.remove('active');
+    panelSummary?.classList.remove('hidden');
+    panelChapters?.classList.add('hidden');
+  });
+  tabChapters?.addEventListener('click', () => {
+    tabChapters.classList.add('active');
+    tabSummary?.classList.remove('active');
+    panelChapters?.classList.remove('hidden');
+    panelSummary?.classList.add('hidden');
+  });
+
+  // ── Helpers ──
+  function fmtTime(s) {
+    if (!isFinite(s)) return '--:--';
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = Math.floor(s % 60);
+    if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+    return `${m}:${String(sec).padStart(2,'0')}`;
+  }
+
+  function fmtLen(raw) {
+    if (!raw) return '--:--';
+    const parts = raw.split(':');
+    if (parts.length !== 3) return raw;
+    const h = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    const s = parts[2];
+    if (h === 0) return `${m}:${s}`;
+    return `${h}:${String(m).padStart(2,'0')}:${s}`;
+  }
+
+  function updateChapterHighlight(idx) {
+    document.querySelectorAll('.chapter-row').forEach(row => {
+      row.classList.toggle('active', parseInt(row.dataset.chapterIdx ?? '-1') === idx);
+    });
+  }
+
+  function updateSheetTitle(name) {
+    if (sheetTitleText) sheetTitleText.textContent = name;
+    if (miniTitle) miniTitle.textContent = name;
+    initMarquee();
+  }
+
+  // ── Initialize: pre-load chapter 0 ──
+  if (hasAudio && chapters.length > 0 && audio) {
+    currentIdx = 0;
+    audio.src = chapters[0].audioSrc;
+    if (timeTotal) timeTotal.textContent = fmtLen(chapters[0].length);
+    updateChapterHighlight(0);
+  }
+
+  if (!hasAudio || !audio) {
+    if (playBtn) playBtn.disabled = true;
+  } else {
+
+    // ── setPlaying ──
+    function setPlaying(playing) {
+      if (playing) {
+        disc.style.animationPlayState = 'running';
+        disc.classList.add('glowing');
+        tonearmSvg.classList.add('glowing');
+        iconPlay.style.display = 'none';
+        iconPause.style.display = '';
+        playBtn.setAttribute('aria-label', 'Pause');
+        if (miniIconPlay)  miniIconPlay.style.display  = 'none';
+        if (miniIconPause) miniIconPause.style.display = '';
+        miniPlayBtn?.setAttribute('aria-label', 'Pause');
+      } else {
+        disc.style.animationPlayState = 'paused';
+        disc.classList.remove('glowing');
+        tonearmSvg.classList.remove('glowing');
+        iconPlay.style.display = '';
+        iconPause.style.display = 'none';
+        playBtn.setAttribute('aria-label', 'Play');
+        if (miniIconPlay)  miniIconPlay.style.display  = '';
+        if (miniIconPause) miniIconPause.style.display = 'none';
+        miniPlayBtn?.setAttribute('aria-label', 'Play');
+      }
+    }
+
+    function landArm(callback) {
+      tonearm.classList.remove('raised');
+      tonearm.classList.add('on-groove');
+      setTimeout(() => { if (callback) callback(); }, 900);
+    }
+
+    // ── loadChapter: swap audio and optionally play ──
+    function loadChapter(idx, autoplay) {
+      const ch = chapters[idx];
+      if (!ch || !ch.audioSrc) return;
+
+      currentIdx = idx;
+      audio.pause();
+      audio.src = ch.audioSrc;
+
+      // Reset scrubber
+      if (scrubFill)   scrubFill.style.width  = '0%';
+      if (scrubThumb)  scrubThumb.style.left   = '0%';
+      if (timeElapsed) timeElapsed.textContent = '0:00';
+      if (timeTotal)   timeTotal.textContent   = fmtLen(ch.length);
+      scrubTrack?.setAttribute('aria-valuenow', '0');
+
+      updateSheetTitle(ch.chapterName);
+      updateChapterHighlight(idx);
+
+      if (!autoplay) return;
+
+      hasStarted = true;
+      const isMobile = window.innerWidth < 768;
+
+      async function doPlay() {
+        try { await audio.play(); setPlaying(true); }
+        catch(e) { console.error('Playback failed:', e); }
+      }
+
+      if (isMobile) openSheet();
+
+      if (!armLanded) {
+        armLanded = true;
+        setTimeout(() => landArm(doPlay), isMobile ? 120 : 0);
+      } else {
+        setTimeout(doPlay, isMobile ? 120 : 0);
+      }
+    }
+
+    // ── togglePlayback (play button) ──
+    async function togglePlayback() {
+      if (audio.paused) {
+        if (!armLanded) {
+          armLanded = true;
+          hasStarted = true;
+          landArm(async () => {
+            try { await audio.play(); setPlaying(true); }
+            catch(e) { console.error('Playback failed:', e); }
+          });
+        } else {
+          try { await audio.play(); setPlaying(true); }
+          catch(e) { console.error('Playback failed:', e); }
+        }
+      } else {
+        audio.pause();
+        setPlaying(false);
+      }
+    }
+
+    playBtn?.addEventListener('click', togglePlayback);
+    miniPlayBtn?.addEventListener('click', togglePlayback);
+
+    // ── Chapter row clicks (both mobile + desktop lists) ──
+    document.querySelectorAll('.chapter-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const idx = parseInt(row.dataset.chapterIdx ?? '0', 10);
+        loadChapter(idx, true);
+      });
+      row.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          const idx = parseInt(row.dataset.chapterIdx ?? '0', 10);
+          loadChapter(idx, true);
+        }
+      });
+    });
+
+    // ── Auto-advance to next chapter ──
+    audio.addEventListener('ended', () => {
+      if (currentIdx < chapters.length - 1) {
+        loadChapter(currentIdx + 1, true);
+      } else {
+        setPlaying(false);
+      }
+    });
+
+    // ── Progress updates ──
+    audio.addEventListener('timeupdate', () => {
+      if (!audio.duration) return;
+      const pct = audio.currentTime / audio.duration;
+      if (scrubFill)  scrubFill.style.width = `${pct * 100}%`;
+      if (scrubThumb) scrubThumb.style.left  = `${pct * 100}%`;
+      scrubTrack?.setAttribute('aria-valuenow', Math.round(pct * 100));
+      if (timeElapsed) timeElapsed.textContent = fmtTime(audio.currentTime);
+      if (timeTotal)   timeTotal.textContent   = fmtTime(audio.duration);
+    });
+
+    // ── Skip ──
+    skipBack?.addEventListener('click', () => { audio.currentTime = Math.max(0, audio.currentTime - 15); });
+    skipFwd?.addEventListener('click',  () => { audio.currentTime = Math.min(audio.duration || Infinity, audio.currentTime + 15); });
+
+    // ── Speed ──
+    const speedCycleBtn = document.getElementById('speed-cycle-btn');
+    const speeds = [1, 1.25, 1.5];
+    let speedIdx = 0;
+    speedCycleBtn?.addEventListener('click', () => {
+      speedIdx = (speedIdx + 1) % speeds.length;
+      audio.playbackRate = speeds[speedIdx];
+      speedCycleBtn.textContent = speeds[speedIdx] + '×';
+    });
+
+    // ── Mute ──
+    const muteBtn      = document.getElementById('mute-btn');
+    const iconUnmuted  = document.getElementById('icon-unmuted');
+    const iconMuted    = document.getElementById('icon-muted');
+    let isMuted = false;
+    muteBtn?.addEventListener('click', () => {
+      isMuted = !isMuted;
+      audio.muted = isMuted;
+      if (iconUnmuted) iconUnmuted.style.display = isMuted ? 'none' : '';
+      if (iconMuted)   iconMuted.style.display   = isMuted ? '' : 'none';
+      muteBtn?.setAttribute('aria-label', isMuted ? 'Unmute' : 'Mute');
+    });
+
+    // ── Scrubber ──
+    let scrubbing = false;
+    function seek(e) {
+      if (!audio.duration) return;
+      const rect = scrubTrack.getBoundingClientRect();
+      const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      audio.currentTime = pct * audio.duration;
+    }
+    scrubTrack?.addEventListener('mousedown', e => { scrubbing = true; seek(e); });
+    document.addEventListener('mousemove', e => { if (scrubbing) seek(e); });
+    document.addEventListener('mouseup', () => { scrubbing = false; });
+    scrubTrack?.addEventListener('touchstart', e => { scrubbing = true; seek(e.touches[0]); }, { passive: true });
+    document.addEventListener('touchmove', e => { if (scrubbing) seek(e.touches[0]); }, { passive: true });
+    document.addEventListener('touchend', () => { scrubbing = false; });
+
+  } // end hasAudio block
+
+  // ── Marquee ──
+  function initMarquee() {
+    const text      = document.getElementById('sheet-title-text');
+    const container = document.getElementById('sheet-title-marquee');
+    if (!text || !container) return;
+    text.classList.remove('marquee-active');
+    const overflow = text.scrollWidth - container.clientWidth;
+    if (overflow > 5) {
+      text.style.setProperty('--marquee-offset', `-${overflow}px`);
+      text.classList.add('marquee-active');
+    }
+  }
+  initMarquee();
+  window.addEventListener('resize', initMarquee);
+</script>
