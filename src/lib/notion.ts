@@ -30,15 +30,16 @@ export async function getAllPodfics() {
 
 // Curated recs — fetched by page ID so order is preserved and cover art stays in sync with Notion
 const REC_PAGE_IDS = [
-  "330bce89a9a481eab010fd0db5da3fc3", // Courtesy Call
+  "32dbce89a9a481e2b12fd56e5854349b", // Extraordinary Attorney Wangji
+  "330bce89a9a4813ab39beb470e9f7171", // Unforeseen
   "330bce89a9a48122a4abf5166aa970cc", // I Can Hear You Blushing
   "330bce89a9a481cc8e1fc6a22ebdc80a", // Headphones and Naughty Whispers
+  "330bce89a9a481eab010fd0db5da3fc3", // Courtesy Call
   "330bce89a9a481ca8371e09d668283ec", // Turning Point
   "330bce89a9a48150b15afa4693a136b9", // If You Don't Know How To Blow, Blow For Me
   "330bce89a9a481559948dbe811724cfd", // If You Really Hold Me Tight
   "330bce89a9a481efa30dc9988b1b10a9", // Life You Up, a (re) Meet-Cute
   "330bce89a9a481b98929c6cc334fcddd", // An Edible Arrangement
-  "330bce89a9a4813ab39beb470e9f7171", // Unforeseen
 ];
 
 export async function getRecommendations() {

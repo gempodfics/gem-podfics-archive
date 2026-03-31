@@ -1211,10 +1211,15 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
     }
 
     // ── Arm land ──
+    // How many ms after the arm starts swinging (0.85s = 850ms total) before audio begins.
+    // Lower = audio plays earlier relative to the needle hitting the record.
+    // Sweet spot: 400–600ms. Set to 0 for instant audio on arm-start.
+    const ARM_AUDIO_DELAY_MS = 500;
+
     function landArm(callback) {
       tonearm.classList.remove('raised');
       tonearm.classList.add('on-groove');
-      setTimeout(() => { if (callback) callback(); }, 600);
+      setTimeout(() => { if (callback) callback(); }, ARM_AUDIO_DELAY_MS);
     }
 
     // ── Media Session API (lock screen / now playing widget) ──
