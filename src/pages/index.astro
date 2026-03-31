@@ -68,7 +68,7 @@ const needsZoom = (id: string) => ZOOM_IDS.has(id.replace(/-/g, ''));
 
       <div class="recs-row" id="recs-row">
         {recs.map((rec) => (
-          <a href={`/podfic/${rec.id}`} class="rec-card">
+          <a href={rec.type === 'Multi Chapter' ? `/multi/${rec.id}` : `/podfic/${rec.id}`} class="rec-card">
             <div class="vinyl-wrap">
               <div class="vinyl-record-peek" aria-hidden="true">
                 <div class="record-center-dot"></div>
@@ -204,7 +204,7 @@ const needsZoom = (id: string) => ZOOM_IDS.has(id.replace(/-/g, ''));
 
       <div class="art-row" id="art-row">
         {commissionedArt.map((item) => (
-          <a href={`/podfic/${item.id}`} class="art-card">
+          <a href={item.type === 'Multi Chapter' ? `/multi/${item.id}` : `/podfic/${item.id}`} class="art-card">
             <div class="art-img-wrap">
               <img src={item.commissionedArtUrl} alt={item.title} class="art-img" />
               <div class="art-overlay"></div>
