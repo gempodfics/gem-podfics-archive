@@ -477,9 +477,16 @@ function ratingSlug(r: string) {
   }
   .record-center-dot {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    width: 13%; aspect-ratio: 1 / 1; border-radius: 50%;
-    background: radial-gradient(circle, #3d1020 0%, #200810 100%);
-    border: 1.5px solid rgba(255,255,255,0.1);
+    width: 40%; aspect-ratio: 1 / 1; border-radius: 50%;
+    background: radial-gradient(circle, var(--accent-pink) 0%, #c0406a 55%, #8b1f3f 100%);
+    border: 1.5px solid rgba(255,255,255,0.12);
+    box-shadow: 0 0 10px rgba(232,88,138,0.45);
+  }
+  .record-center-dot::after {
+    content: '';
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 22%; aspect-ratio: 1 / 1; border-radius: 50%;
+    background: var(--bg-primary);
   }
   .rating-badge {
     position: absolute; top: -2px; right: -2px;
