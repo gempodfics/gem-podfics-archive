@@ -25,6 +25,15 @@ function ratingLabel(r: string) {
 const coverImg = p.coverArtUrl || p.commissionedArtUrl || '';
 const audioSrc = await resolveInternetArchiveAudio(p.internetArchiveUrl);
 const hasAudio = !!audioSrc;
+
+const LABEL_ZOOM_IDS = new Set([
+  '330bce89a9a481718a69f1ab4cabc626', // To Be Drained By You
+  '330bce89a9a4819f9265d52e35cb1727', // You Came and I Was Mad to Have You
+  '330bce89a9a481ca8371e09d668283ec', // Turning Point
+  '330bce89a9a481a78888caeea6eaed22', // High On Love
+  '330bce89a9a481c98810f0f9890bd058', // Voyeur (Spicy)
+]);
+const labelZoom = LABEL_ZOOM_IDS.has(id!.replace(/-/g, ''));
 const CIRCUMFERENCE = 2 * Math.PI * 94;
 ---
 
@@ -159,7 +168,7 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
               <div class="vinyl-disc" id="vinyl-disc">
                 <div class="vinyl-label">
                   {coverImg
-                    ? <img src={coverImg} alt={p.title} class="label-img" />
+                    ? <img src={coverImg} alt={p.title} class={`label-img${labelZoom ? ' label-zoom' : ''}`} />
                     : <div class="label-placeholder"><svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" opacity="0.3" aria-hidden="true"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg></div>
                   }
                 </div>
@@ -495,13 +504,13 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
     background:
       radial-gradient(ellipse at 32% 28%, rgba(255,255,255,0.07) 0%, transparent 48%),
       repeating-radial-gradient(circle at center, transparent, transparent 7px, rgba(255,255,255,0.04) 7px, rgba(255,255,255,0.04) 8px),
-      radial-gradient(circle at center, #2e2e2e 0%, #222 30%, #181818 60%, #0d0d0d 100%);
+      radial-gradient(circle at center, #521422 0%, #3d0e1a 30%, #280910 60%, #140407 100%);
     box-shadow: 4px 4px 16px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(255,255,255,0.05);
   }
   .ca-record-dot {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
     width: 13%; aspect-ratio: 1 / 1; border-radius: 50%;
-    background: radial-gradient(circle, #2c2c2c 0%, #181818 100%);
+    background: radial-gradient(circle, #3d1020 0%, #200810 100%);
     border: 1.5px solid rgba(255,255,255,0.1);
   }
   /* Rating badge on content artwork */
@@ -644,8 +653,8 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
     background:
       repeating-radial-gradient(
         circle at center,
-        #0f0f14 0px, #0f0f14 5px,
-        #181820 5px, #181820 6px
+        #120508 0px, #120508 5px,
+        #1a0810 5px, #1a0810 6px
       );
     box-shadow:
       inset 0 0 30px rgba(0,0,0,0.6),
@@ -690,6 +699,7 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
     flex-shrink: 0;
   }
   .label-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .label-img.label-zoom { transform: scale(1.15); }
   .spindle-hole {
     position: absolute;
     width: 10px; height: 10px;

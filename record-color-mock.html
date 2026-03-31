@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Record Color Mock — Gem Podfics</title>
+  <style>
+    :root {
+      --bg-primary: #0E0A14;
+      --bg-surface: #1A1028;
+      --bg-elevated: #251640;
+      --accent-pink: #E8588A;
+      --text-primary: #EDE4FA;
+      --text-secondary: #C4AEDD;
+      --text-muted: #A88BC5;
+      --rating-general: #6FCF97;
+      --rating-teen: #F2C94C;
+      --rating-mature: #F2994A;
+      --rating-explicit: #EB5757;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: 'Crimson Pro', Georgia, serif;
+      font-size: 18px;
+      min-height: 100vh;
+      padding: 2.5rem 2rem 4rem;
+    }
+
+    h1 {
+      font-family: Georgia, serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    /* ── Swatch picker ── */
+    .picker {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 3rem;
+    }
+
+    .picker-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+    }
+
+    .swatches {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .swatch {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2.5px solid transparent;
+      transition: border-color 0.15s, transform 0.15s;
+      position: relative;
+    }
+
+    .swatch:hover { transform: scale(1.1); }
+    .swatch.active { border-color: var(--accent-pink); }
+
+    .swatch-name {
+      font-size: 0.8rem;
+      color: var(--accent-pink);
+      text-align: center;
+      min-height: 1.2rem;
+      letter-spacing: 0.02em;
+    }
+
+    .swatch-hex {
+      display: inline-block;
+      background: var(--bg-elevated);
+      border-radius: 4px;
+      padding: 0.1rem 0.4rem;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      font-family: monospace;
+    }
+
+    .swatch-info {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* ── Cards grid ── */
+    .cards-row {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .rec-card {
+      width: 160px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      text-decoration: none;
+    }
+
+    .vinyl-wrap { position: relative; }
+
+    .sleeve-container { position: relative; width: 74%; z-index: 2; }
+
+    .sleeve-art {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 6px;
+      overflow: hidden;
+      background: var(--bg-surface);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06);
+    }
+
+    .sleeve-placeholder {
+      width: 100%; height: 100%;
+      background: radial-gradient(circle, var(--bg-elevated) 0%, var(--bg-surface) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+    }
+
+    .vinyl-record-peek {
+      position: absolute;
+      top: 0; right: 0;
+      width: 74%;
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+      z-index: 1;
+      box-shadow: 4px 4px 16px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(255,255,255,0.05);
+      transition: background 0.35s ease;
+    }
+
+    .record-center-dot {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 13%; aspect-ratio: 1 / 1; border-radius: 50%;
+      background: radial-gradient(circle, #2c2c2c 0%, #181818 100%);
+      border: 1.5px solid rgba(255,255,255,0.1);
+    }
+
+    .rating-badge {
+      position: absolute;
+      top: -2px; right: -2px;
+      font-size: 0.6rem;
+      font-weight: 800;
+      line-height: 1;
+      padding: 0.22rem 0.38rem;
+      border-radius: 0.25rem;
+      letter-spacing: 0.04em;
+      color: #000;
+      z-index: 3;
+      font-family: system-ui, sans-serif;
+    }
+    .rating-e { background: #EB5757; }
+    .rating-g { background: #6FCF97; }
+    .rating-m { background: #F2994A; }
+    .rating-t { background: #F2C94C; }
+
+    .rec-meta { display: flex; flex-direction: column; gap: 0.2rem; padding-left: 0.1rem; }
+    .rec-title { font-size: 0.8rem; font-weight: 600; color: var(--text-primary); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .rec-fandom { font-size: 0.7rem; color: var(--text-muted); font-weight: 500; }
+    .rec-duration { font-size: 0.7rem; color: var(--accent-pink); font-weight: 600; display: flex; align-items: center; gap: 0.25rem; }
+
+    /* ── Section heading (matches homepage) ── */
+    .section-header {
+      text-align: center;
+      margin-bottom: 1.75rem;
+    }
+    .section-title {
+      font-family: Georgia, serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.4rem;
+    }
+    .section-underline {
+      width: 2.5rem;
+      height: 3px;
+      background: var(--accent-pink);
+      border-radius: 2px;
+      margin: 0 auto;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      margin: 2.5rem 0;
+    }
+
+    /* ── Plinth section ── */
+    .plinth-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .plinth-toggles {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .plinth-btn {
+      background: var(--bg-surface);
+      border: 1.5px solid rgba(255,255,255,0.1);
+      border-radius: 9999px;
+      color: var(--text-secondary);
+      font-family: Georgia, serif;
+      font-size: 0.8rem;
+      padding: 0.4rem 1rem;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .plinth-btn:hover { border-color: var(--accent-pink); color: var(--text-primary); }
+    .plinth-btn.active { border-color: var(--accent-pink); color: var(--accent-pink); }
+
+    .plinth-stage {
+      display: flex;
+      gap: 3rem;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .plinth-demo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .plinth-demo-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .plinth-surface {
+      width: 260px;
+      padding: 36px 24px 20px 24px;
+      border-radius: 10px;
+      overflow: visible;
+      background:
+        repeating-linear-gradient(
+          177deg,
+          transparent        0px,
+          transparent        3px,
+          rgba(0,0,0,0.13)   3px,
+          rgba(0,0,0,0.13)   4px,
+          transparent        4px,
+          transparent        9px,
+          rgba(0,0,0,0.07)   9px,
+          rgba(0,0,0,0.07)  10px,
+          transparent       10px,
+          transparent       15px,
+          rgba(220,150,80,0.06) 15px,
+          rgba(220,150,80,0.06) 16px,
+          transparent       16px,
+          transparent       22px
+        ),
+        linear-gradient(155deg,
+          #5e3420 0%, #472512 12%, #3c1e0c 30%,
+          #4a2810 55%, #3a1e0c 80%, #2e1608 100%
+        );
+      box-shadow:
+        inset 0 1px 0 rgba(220,160,90,0.18),
+        inset 0 -3px 10px rgba(0,0,0,0.35),
+        0 0 0 1px rgba(0,0,0,0.55),
+        0 4px 0 #130b02,
+        0 7px 0 #0c0701,
+        0 10px 28px rgba(0,0,0,0.80),
+        0 20px 50px rgba(0,0,0,0.45);
+    }
+
+    .vinyl-stage {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1;
+    }
+
+    .vinyl-disc {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      box-shadow:
+        inset 0 0 30px rgba(0,0,0,0.6),
+        0 0 0 1px rgba(255,255,255,0.04),
+        0 0 0 transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: box-shadow 0.6s ease, background 0.4s ease;
+    }
+
+    .vinyl-disc.glowing {
+      box-shadow:
+        inset 0 0 30px rgba(0,0,0,0.6),
+        0 0 0 1px rgba(255,255,255,0.04),
+        0 0  20px rgba(232, 88, 138, 0.55),
+        0 0  50px rgba(232, 88, 138, 0.35),
+        0 0 100px rgba(232, 88, 138, 0.18);
+    }
+
+    .vinyl-sheen {
+      position: absolute; inset: 0; border-radius: 50%;
+      pointer-events: none; z-index: 1;
+      background:
+        radial-gradient(ellipse 58% 38% at 30% 26%, rgba(255,255,255,0.11) 0%, rgba(255,255,255,0.05) 45%, transparent 72%),
+        radial-gradient(ellipse 28% 44% at 80% 72%, rgba(255,255,255,0.06) 0%, transparent 62%),
+        conic-gradient(from 205deg at 50% 50%,
+          transparent 0deg, rgba(190,160,255,0.05) 35deg, rgba(155,205,255,0.04) 75deg,
+          transparent 110deg, transparent 200deg, rgba(255,185,220,0.04) 258deg, transparent 300deg);
+      mix-blend-mode: screen;
+    }
+
+    .vinyl-label-ring {
+      width: 36%; height: 36%;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.08);
+      background: var(--bg-elevated);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      z-index: 2;
+      position: relative;
+      font-size: 0.5rem;
+      color: var(--text-muted);
+      letter-spacing: 0.03em;
+    }
+
+    .spindle-hole {
+      position: absolute;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--bg-primary);
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.9), 0 0 0 1px rgba(0,0,0,0.6);
+      z-index: 3;
+    }
+
+    .glow-toggle {
+      background: var(--bg-elevated);
+      border: 1.5px solid rgba(232,88,138,0.3);
+      border-radius: 9999px;
+      color: var(--text-muted);
+      font-family: Georgia, serif;
+      font-size: 0.8rem;
+      padding: 0.35rem 1rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .glow-toggle.on {
+      border-color: var(--accent-pink);
+      color: var(--accent-pink);
+      background: rgba(232,88,138,0.08);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Record Color Compare — Gem Podfics</h1>
+
+  <div class="picker">
+    <p class="picker-label">Click a swatch to update all records</p>
+    <div class="swatches" id="swatches"></div>
+    <div class="swatch-info">
+      <span class="swatch-name" id="active-name"></span>
+      <span class="swatch-hex" id="active-hex"></span>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <div class="section-header">
+    <h2 class="section-title">My Recommendations</h2>
+    <div class="section-underline"></div>
+  </div>
+
+  <div class="cards-row" id="cards">
+
+    <div class="rec-card">
+      <div class="vinyl-wrap">
+        <div class="vinyl-record-peek record" aria-hidden="true">
+          <div class="record-center-dot"></div>
+        </div>
+        <div class="sleeve-container">
+          <div class="sleeve-art">
+            <div class="sleeve-placeholder">[ cover art ]</div>
+          </div>
+          <span class="rating-badge rating-e">E</span>
+        </div>
+      </div>
+      <div class="rec-meta">
+        <span class="rec-title">White Leather</span>
+        <span class="rec-fandom">TGCF · M/M</span>
+        <span class="rec-duration">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          2:28:41 · 7 Chapters
+        </span>
+      </div>
+    </div>
+
+    <div class="rec-card">
+      <div class="vinyl-wrap">
+        <div class="vinyl-record-peek record" aria-hidden="true">
+          <div class="record-center-dot"></div>
+        </div>
+        <div class="sleeve-container">
+          <div class="sleeve-art">
+            <div class="sleeve-placeholder">[ cover art ]</div>
+          </div>
+          <span class="rating-badge rating-g">G</span>
+        </div>
+      </div>
+      <div class="rec-meta">
+        <span class="rec-title">Those Hands Pulled Me From the Earth</span>
+        <span class="rec-fandom">TGCF · M/M</span>
+        <span class="rec-duration">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          13:06 · 1 Chapter
+        </span>
+      </div>
+    </div>
+
+    <div class="rec-card">
+      <div class="vinyl-wrap">
+        <div class="vinyl-record-peek record" aria-hidden="true">
+          <div class="record-center-dot"></div>
+        </div>
+        <div class="sleeve-container">
+          <div class="sleeve-art">
+            <div class="sleeve-placeholder">[ cover art ]</div>
+          </div>
+          <span class="rating-badge rating-e">E</span>
+        </div>
+      </div>
+      <div class="rec-meta">
+        <span class="rec-title">Like Wet Earth After Rain</span>
+        <span class="rec-fandom">MDZS · M/M</span>
+        <span class="rec-duration">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          2:47:38 · 5 Chapters
+        </span>
+      </div>
+    </div>
+
+    <div class="rec-card">
+      <div class="vinyl-wrap">
+        <div class="vinyl-record-peek record" aria-hidden="true">
+          <div class="record-center-dot"></div>
+        </div>
+        <div class="sleeve-container">
+          <div class="sleeve-art">
+            <div class="sleeve-placeholder">[ cover art ]</div>
+          </div>
+          <span class="rating-badge rating-t">T</span>
+        </div>
+      </div>
+      <div class="rec-meta">
+        <span class="rec-title">Courtesy Call</span>
+        <span class="rec-fandom">MDZS · M/M</span>
+        <span class="rec-duration">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          45:12
+        </span>
+      </div>
+    </div>
+
+    <div class="rec-card">
+      <div class="vinyl-wrap">
+        <div class="vinyl-record-peek record" aria-hidden="true">
+          <div class="record-center-dot"></div>
+        </div>
+        <div class="sleeve-container">
+          <div class="sleeve-art">
+            <div class="sleeve-placeholder">[ cover art ]</div>
+          </div>
+          <span class="rating-badge rating-m">M</span>
+        </div>
+      </div>
+      <div class="rec-meta">
+        <span class="rec-title">I Can Hear You Blushing</span>
+        <span class="rec-fandom">TGCF · M/M</span>
+        <span class="rec-duration">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          1:02:44
+        </span>
+      </div>
+    </div>
+
+  </div>
+
+  <hr class="divider" />
+
+  <div class="section-header">
+    <h2 class="section-title">Plinth — Color on the Player</h2>
+    <div class="section-underline"></div>
+  </div>
+
+  <div class="plinth-section">
+
+    <div class="plinth-toggles" id="plinth-toggles">
+      <button class="plinth-btn active" data-pidx="0">Current (Near-Black)</button>
+      <button class="plinth-btn" data-pidx="1">Dark Hint (#1a0508)</button>
+      <button class="plinth-btn" data-pidx="2">Crimson (#3d0e1a)</button>
+    </div>
+
+    <button class="glow-toggle" id="glow-toggle">Glow: OFF</button>
+
+    <div class="plinth-stage">
+
+      <div class="plinth-demo">
+        <span class="plinth-demo-label">Playing state</span>
+        <div class="plinth-surface">
+          <div class="vinyl-stage">
+            <div class="vinyl-disc plinth-disc" id="plinth-disc-playing">
+              <div class="vinyl-sheen"></div>
+              <div class="vinyl-label-ring">cover art</div>
+              <div class="spindle-hole"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="plinth-demo">
+        <span class="plinth-demo-label">Paused state</span>
+        <div class="plinth-surface">
+          <div class="vinyl-stage">
+            <div class="vinyl-disc plinth-disc" id="plinth-disc-paused">
+              <div class="vinyl-sheen"></div>
+              <div class="vinyl-label-ring">cover art</div>
+              <div class="spindle-hole"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const COLORS = [
+      { name: 'Current (Charcoal)', hex: null,      center: '#2e2e2e', mid: '#222',    outer: '#181818', edge: '#0d0d0d' },
+      { name: 'Burgundy',           hex: '#2a0a1a',  center: '#3d1020', mid: '#2a0a1a', outer: '#1a0710', edge: '#0f0409' },
+      { name: 'Crimson',            hex: '#3d0e1a',  center: '#521422', mid: '#3d0e1a', outer: '#280910', edge: '#140407' },
+      { name: 'Deep Purple',        hex: '#1e0a30',  center: '#2e1245', mid: '#1e0a30', outer: '#130620', edge: '#090313' },
+      { name: 'Violet',             hex: '#2a0a3d',  center: '#3a1252', mid: '#2a0a3d', outer: '#1a0628', edge: '#0e0315' },
+      { name: 'Dark Teal',          hex: '#0a1e1a',  center: '#122e28', mid: '#0a1e1a', outer: '#061310', edge: '#030a08' },
+      { name: 'Midnight Navy',      hex: '#080f20',  center: '#0e1830', mid: '#080f20', outer: '#050a14', edge: '#02040b' },
+      { name: 'Slate',              hex: '#1a1a2e',  center: '#252540', mid: '#1a1a2e', outer: '#10101e', edge: '#08080f' },
+    ];
+
+    let activeIdx = 0;
+
+    function recordBg(c) {
+      return `
+        radial-gradient(ellipse at 32% 28%, rgba(255,255,255,0.07) 0%, transparent 48%),
+        repeating-radial-gradient(circle at center, transparent, transparent 7px, rgba(255,255,255,0.04) 7px, rgba(255,255,255,0.04) 8px),
+        radial-gradient(circle at center, ${c.center} 0%, ${c.mid} 30%, ${c.outer} 60%, ${c.edge} 100%)
+      `.trim();
+    }
+
+    function updateRecords(idx) {
+      activeIdx = idx;
+      const c = COLORS[idx];
+      document.querySelectorAll('.record').forEach(r => r.style.background = recordBg(c));
+      document.querySelectorAll('.swatch').forEach((s, i) => s.classList.toggle('active', i === idx));
+      document.getElementById('active-name').textContent = c.name;
+      document.getElementById('active-hex').textContent = c.hex ?? 'current';
+      if (!c.hex) document.getElementById('active-hex').textContent = '';
+    }
+
+    // Build swatches
+    const container = document.getElementById('swatches');
+    COLORS.forEach((c, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'swatch' + (i === 0 ? ' active' : '');
+      btn.title = c.name;
+      // Show the mid color as the swatch fill
+      if (c.hex) {
+        btn.style.background = `radial-gradient(circle at 35% 30%, color-mix(in srgb, ${c.center} 80%, white 20%) 0%, ${c.hex} 40%, ${c.edge} 100%)`;
+      } else {
+        btn.style.background = `radial-gradient(circle at 35% 30%, #3a3a3a 0%, #222 40%, #0d0d0d 100%)`;
+      }
+      btn.addEventListener('click', () => updateRecords(i));
+      container.appendChild(btn);
+    });
+
+    // Init
+    updateRecords(0);
+
+    // ── Plinth section ──
+    const PLINTH_COLORS = [
+      {
+        label: 'Current (Near-Black)',
+        bg: `repeating-radial-gradient(circle at center, #0f0f14 0px, #0f0f14 5px, #181820 5px, #181820 6px)`
+      },
+      {
+        label: 'Dark Hint',
+        bg: `repeating-radial-gradient(circle at center, #120508 0px, #120508 5px, #1a0810 5px, #1a0810 6px)`
+      },
+      {
+        label: 'Crimson',
+        bg: `repeating-radial-gradient(circle at center, #2a0810 0px, #2a0810 5px, #3d0e1a 5px, #3d0e1a 6px)`
+      },
+    ];
+
+    let plinthIdx = 0;
+    let glowOn = false;
+
+    const playingDisc = document.getElementById('plinth-disc-playing');
+    const pausedDisc  = document.getElementById('plinth-disc-paused');
+
+    function updatePlinth() {
+      const c = PLINTH_COLORS[plinthIdx];
+      [playingDisc, pausedDisc].forEach(d => d.style.background = c.bg);
+      playingDisc.classList.toggle('glowing', glowOn);
+      pausedDisc.classList.remove('glowing');
+
+      document.querySelectorAll('.plinth-btn').forEach((b, i) => b.classList.toggle('active', i === plinthIdx));
+    }
+
+    document.getElementById('plinth-toggles').addEventListener('click', e => {
+      const btn = e.target.closest('.plinth-btn');
+      if (!btn) return;
+      plinthIdx = parseInt(btn.dataset.pidx);
+      updatePlinth();
+    });
+
+    const glowToggle = document.getElementById('glow-toggle');
+    glowToggle.addEventListener('click', () => {
+      glowOn = !glowOn;
+      glowToggle.textContent = glowOn ? 'Glow: ON' : 'Glow: OFF';
+      glowToggle.classList.toggle('on', glowOn);
+      updatePlinth();
+    });
+
+    updatePlinth();
+  </script>
+</body>
+</html>

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About Gem — Mock</title>
+  <style>
+    :root {
+      --bg-primary:        #0E0A14;
+      --bg-surface:        #1A1028;
+      --bg-elevated:       #251640;
+      --accent-pink:       #E8588A;
+      --accent-pink-hover: #F07AA8;
+      --text-primary:      #EDE4FA;
+      --text-secondary:    #C4AEDD;
+      --text-muted:        #A88BC5;
+      --card-border:       rgba(255,255,255,0.06);
+      --radius-xl:         12px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 1rem;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    h1, h2, h3 { font-family: 'Georgia', 'Times New Roman', serif; }
+    a { color: var(--accent-pink); text-decoration: none; }
+    a:hover { color: var(--accent-pink-hover); text-decoration: underline; }
+
+    /* ── Layout ── */
+    .page-wrapper {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 5rem 1.5rem 6rem;
+    }
+    @media (min-width: 640px) {
+      .page-wrapper { padding-left: 3rem; padding-right: 3rem; }
+    }
+
+    section { margin-bottom: 3.5rem; }
+
+    /* ── Section headings ── */
+    .section-heading {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 1.1rem;
+    }
+    .section-heading::after {
+      content: '';
+      display: block;
+      width: 2.5rem;
+      height: 3px;
+      background: var(--accent-pink);
+      margin-top: 0.4rem;
+      border-radius: 2px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.75rem;
+      text-align: center;
+      margin-bottom: 3.5rem;
+    }
+    @media (min-width: 600px) {
+      .hero {
+        flex-direction: row;
+        text-align: left;
+        align-items: center;
+        gap: 2.5rem;
+      }
+    }
+    .headshot-wrap {
+      flex-shrink: 0;
+      width: 140px; height: 140px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid rgba(232, 88, 138, 0.35);
+      box-shadow: 0 0 0 4px rgba(232, 88, 138, 0.1), 0 10px 40px rgba(0,0,0,0.5);
+    }
+    @media (min-width: 600px) {
+      .headshot-wrap { width: 160px; height: 160px; }
+    }
+    .headshot-wrap img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    .hero-text { flex: 1; min-width: 0; }
+    .hero-name {
+      font-size: clamp(2rem, 6vw, 3rem);
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+      line-height: 1.1;
+    }
+    .hero-tagline {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      line-height: 1.6;
+      max-width: 460px;
+    }
+    .hero-rule {
+      width: 3rem; height: 3px;
+      background: var(--accent-pink);
+      border-radius: 2px;
+      margin: 0.85rem auto 0;
+    }
+    @media (min-width: 600px) {
+      .hero-rule { margin-left: 0; }
+    }
+
+    /* ── Prose ── */
+    .prose {
+      color: var(--text-secondary);
+      font-size: 0.975rem;
+      line-height: 1.85;
+    }
+    .prose + .prose { margin-top: 0.85rem; }
+
+    /* ── What's Podfic card ── */
+    .podfic-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-xl);
+      padding: 1.5rem 1.75rem;
+    }
+    .podfic-card .prose + .prose { margin-top: 0.75rem; }
+
+    /* ── Dynamics pill row ── */
+    .dynamics-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+    .dyn-pill {
+      background: var(--bg-elevated);
+      border: 1px solid rgba(232,88,138,0.25);
+      border-radius: 999px;
+      padding: 0.25rem 0.85rem;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+
+    /* ── Accolades ── */
+    .accolades {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+    .accolades li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+    .accolade-dot {
+      flex-shrink: 0;
+      width: 6px; height: 6px;
+      background: var(--accent-pink);
+      border-radius: 50%;
+      margin-top: 0.55em;
+    }
+    .accolade-link {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.5;
+      border-bottom: 1px solid rgba(232,88,138,0.2);
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .accolade-link:hover {
+      color: var(--accent-pink-hover);
+      border-color: rgba(232,88,138,0.5);
+      text-decoration: none;
+    }
+
+    /* ── Commissions CTA ── */
+    .cta-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--card-border);
+      border-left: 3px solid var(--accent-pink);
+      border-radius: var(--radius-xl);
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    @media (min-width: 560px) {
+      .cta-card {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.5rem;
+      }
+    }
+    .cta-text p {
+      color: var(--text-secondary);
+      font-size: 0.925rem;
+      line-height: 1.6;
+    }
+    .cta-text strong {
+      display: block;
+      color: var(--text-primary);
+      font-size: 1rem;
+      margin-bottom: 0.2rem;
+    }
+    .btn {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      font-family: system-ui, sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 0.6rem 1.25rem;
+      border-radius: 8px;
+      background: var(--accent-pink);
+      color: #0E0A14;
+      border: 2px solid var(--accent-pink);
+      text-decoration: none;
+      transition: background 0.18s, border-color 0.18s, box-shadow 0.18s;
+      white-space: nowrap;
+    }
+    .btn:hover {
+      background: var(--accent-pink-hover);
+      border-color: var(--accent-pink-hover);
+      color: #0E0A14;
+      box-shadow: 0 0 16px rgba(232,88,138,0.35);
+      text-decoration: none;
+    }
+
+    /* ── Preview badge ── */
+    .preview-badge {
+      position: fixed; bottom: 1.25rem; right: 1.25rem;
+      background: var(--bg-elevated);
+      border: 1px solid rgba(232,88,138,0.4);
+      border-radius: 999px;
+      padding: 0.35rem 0.9rem;
+      font-size: 0.78rem; color: var(--text-muted);
+      pointer-events: none; letter-spacing: 0.02em;
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <!-- ── HERO ── -->
+  <section class="hero">
+    <div class="headshot-wrap">
+      <img src="/Headshot.PNG" alt="Gem headshot"
+        onerror="this.style.background='#2d1b50'; this.style.display='block'" />
+    </div>
+    <div class="hero-text">
+      <h1 class="hero-name">Hi, I'm Gem</h1>
+      <p class="hero-tagline">A 30+ adult with a mic and free will.</p>
+      <div class="hero-rule"></div>
+    </div>
+  </section>
+
+  <!-- ── ABOUT ── -->
+  <section>
+    <h2 class="section-heading">About</h2>
+    <p class="prose">I am a 30+ fandom enjoyer with a love for many things audio — singing, turning my favorite fan fiction into podfics, and writing and voicing ASMR scripts inspired by fandom and more.</p>
+    <p class="prose">All original fan fics have been recorded with the permission or collaboration of the author.</p>
+    <p class="prose">My podfic work is a celebration of transforming inclusive, mostly queer fan-written works into accessible stories.</p>
+  </section>
+
+  <!-- ── WHAT'S PODFIC ── -->
+  <section>
+    <h2 class="section-heading">What's Podfic?</h2>
+    <div class="podfic-card">
+      <p class="prose">Podfics are the "audiobooks" of fan fiction.</p>
+      <p class="prose">Studies have shown fan fiction is a great outlet for identity exploration for queer folks. I aim to create a safe space for fans to fall even more in love with the stories and ships they enjoy.</p>
+      <p class="prose">I podfic my favourite stories out of pure enjoyment and the spirit of community — and I also take <a href="/podfic-commissions">commissions</a> for those who want me to read their work.</p>
+      <p class="prose">My general rule: if I enjoy the fic and feel I'm capable of voicing it, I'll record it.</p>
+    </div>
+  </section>
+
+  <!-- ── DYNAMICS & THEMES ── -->
+  <section>
+    <h2 class="section-heading">My Podfic Dynamics &amp; Themes</h2>
+    <p class="prose">I enjoy reading and recording many things, including dead dove. I strongly advise you review the original fic story tags on Ao3 for my works. Links to the fic details can be found in the Summary section.</p>
+  </section>
+
+  <!-- ── FEATURES & ACCOLADES ── -->
+  <section>
+    <h2 class="section-heading">Features &amp; Accolades</h2>
+    <ul class="accolades">
+      <li>
+        <div class="accolade-dot"></div>
+        <a href="https://www.transformativeworks.org/otw-guest-post-gem-asteria/" target="_blank" rel="noopener" class="accolade-link">
+          Organization for Transformative Works Guest Post: Gem Asteria
+        </a>
+      </li>
+      <li>
+        <div class="accolade-dot"></div>
+        <a href="https://blackpodawards.com/our-nominees-and-winners/2023-nominees-and-winners/" target="_blank" rel="noopener" class="accolade-link">
+          Black Podcasting Awards — 2023 Nominee for Best Scripted Fiction Podcast
+        </a>
+      </li>
+      <li>
+        <div class="accolade-dot"></div>
+        <a href="https://everybody-media.com/iwpa-shortlists-2023/" target="_blank" rel="noopener" class="accolade-link">
+          IWPA Shortlist 2023 — Moment of Dramatic Tension
+        </a>
+      </li>
+    </ul>
+  </section>
+
+  <!-- ── COMMISSIONS CTA ── -->
+  <section>
+    <div class="cta-card">
+      <div class="cta-text">
+        <strong>Want me to record your fic?</strong>
+        <p>I take commissions for podfics. Check the commissions page for rates, how it works, and how to get in touch.</p>
+      </div>
+      <a href="/podfic-commissions" class="btn">Learn More</a>
+    </div>
+  </section>
+
+</div>
+
+<div class="preview-badge">Preview only — not live yet</div>
+
+</body>
+</html>
