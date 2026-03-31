@@ -175,8 +175,13 @@ function ratingLabel(r: string) {
         <div class="sheet-handle"></div>
       </button>
 
-      <!-- Sheet title row: current chapter name (mobile only) -->
+      <!-- Sheet header row: back arrow (left) + chapter title (centre) — mobile only -->
       <div class="sheet-title-row">
+        <button class="sheet-back-btn" id="sheet-back-btn" aria-label="Back to chapter list">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+          </svg>
+        </button>
         <div class="sheet-title-marquee" id="sheet-title-marquee">
           <span class="sheet-title-text" id="sheet-title-text">{firstChapterName}</span>
         </div>
@@ -638,16 +643,35 @@ function ratingLabel(r: string) {
   /* ── Sheet title row (mobile only) ── */
   .sheet-title-row {
     display: none;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     width: 100%;
     padding: 0.25rem 1.25rem 0;
-    text-align: center;
+    gap: 0.5rem;
+  }
+  .sheet-back-btn {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    padding: 0;
+  }
+  .sheet-back-btn:hover {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
   }
   .sheet-title-marquee {
     overflow: hidden;
     white-space: nowrap;
-    width: 100%;
+    flex: 1;
   }
   .sheet-title-text {
     display: inline-block;
@@ -1168,6 +1192,7 @@ function ratingLabel(r: string) {
 
   // ── Mobile refs ──
   const sheetDismissBtn = document.getElementById('sheet-dismiss-btn');
+  const sheetBackBtn    = document.getElementById('sheet-back-btn');
   const miniPlayerBar   = document.getElementById('mini-player-bar');
   const miniPlayBtn     = document.getElementById('mini-play-btn');
   const miniIconPlay    = document.getElementById('mini-icon-play');
@@ -1192,6 +1217,7 @@ function ratingLabel(r: string) {
     }
   }
   sheetDismissBtn?.addEventListener('click', closeSheet);
+  sheetBackBtn?.addEventListener('click', closeSheet);
 
   // ── Tabs ──
   const tabSummary    = document.getElementById('tab-summary');
