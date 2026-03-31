@@ -228,10 +228,10 @@ function ratingLabel(r: string) {
                     <stop offset="76%"  stop-color="#787890"/>
                     <stop offset="100%" stop-color="#9898b0"/>
                   </linearGradient>
-                  <radialGradient id="cw-grad" cx="33%" cy="28%" r="68%">
-                    <stop offset="0%"   stop-color="#d8d8e8"/>
-                    <stop offset="45%"  stop-color="#7070a0"/>
-                    <stop offset="100%" stop-color="#1c1c2c"/>
+                  <radialGradient id="cw-grad" cx="38%" cy="32%" r="70%">
+                    <stop offset="0%"   stop-color="#7878a0"/>
+                    <stop offset="50%"  stop-color="#3c3c58"/>
+                    <stop offset="100%" stop-color="#1a1a2a"/>
                   </radialGradient>
                   <radialGradient id="pivot-outer-grad" cx="30%" cy="25%" r="75%">
                     <stop offset="0%"   stop-color="#5a5a78"/>
@@ -248,27 +248,23 @@ function ratingLabel(r: string) {
                   <g transform="translate(26, 10) rotate(-27)">
                     <rect x="-3" y="-18" width="6" height="18" rx="3" fill="url(#arm-grad)"/>
                     <rect x="-10" y="-32" width="20" height="14" rx="3.5" fill="url(#cw-grad)"/>
-                    <rect x="-9" y="-31" width="13" height="4" rx="1.5" fill="rgba(255,255,255,0.28)" opacity="0.85"/>
+                    <rect x="-9" y="-31" width="13" height="4" rx="1.5" fill="rgba(255,255,255,0.10)" opacity="0.85"/>
                     <rect x="-3.5" y="0" width="7" height="67" rx="3.5" fill="url(#arm-grad)"/>
                     <rect x="-0.5" y="2" width="3.5" height="63" rx="2" fill="rgba(0,0,0,0.22)"/>
                     <rect x="-3" y="2" width="1.8" height="63" rx="1" fill="rgba(255,255,255,0.40)" opacity="0.7"/>
                     <g id="needle-head-lights">
                       <circle cx="0" cy="67" r="5.5" fill="url(#cw-grad)"/>
-                      <circle cx="-2" cy="65" r="1.8" fill="rgba(255,255,255,0.65)"/>
+                      <circle cx="-1.5" cy="65.5" r="1.5" fill="rgba(255,255,255,0.10)"/>
                       <rect x="-7" y="70" width="14" height="14" rx="2.5" fill="url(#cw-grad)"/>
-                      <rect x="-6" y="71" width="10" height="4.5" rx="1.5" fill="rgba(255,255,255,0.32)"/>
-                      <line x1="0" y1="84" x2="0" y2="88" stroke="#b0b0c8" stroke-width="1.5" stroke-linecap="round"/>
-                      <line x1="-0.5" y1="84" x2="-0.5" y2="88" stroke="rgba(255,255,255,0.28)" stroke-width="0.5" stroke-linecap="round"/>
+                      <rect x="-6" y="71" width="10" height="2.5" rx="1" fill="rgba(255,255,255,0.08)"/>
+                      <line x1="0" y1="84" x2="0" y2="88" stroke="#7070a0" stroke-width="1.5" stroke-linecap="round"/>
+                      <line x1="-0.5" y1="84" x2="-0.5" y2="88" stroke="rgba(255,255,255,0.10)" stroke-width="0.5" stroke-linecap="round"/>
                     </g>
                   </g>
                 </g>
                 <circle cx="26" cy="10" r="13" fill="url(#pivot-outer-grad)"/>
                 <circle cx="26" cy="10" r="10" fill="#18182a"/>
                 <circle cx="26" cy="10" r="8"  fill="url(#pivot-grad)"/>
-                <circle cx="26" cy="10" r="3.5" fill="#14141e"/>
-                <circle cx="26" cy="10" r="2"  fill="url(#pivot-grad)"/>
-                <circle cx="24" cy="8"  r="1.8" fill="rgba(255,255,255,0.65)" opacity="0.6"/>
-                <circle cx="25" cy="7"  r="0.7" fill="rgba(255,255,255,0.92)"/>
               </svg>
             </div>
           </div>
