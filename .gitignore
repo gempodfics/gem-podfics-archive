@@ -26,5 +26,10 @@ Stitch Interface Screens/
 References for design inspiration/
 CLAUDE.md
 
+# Design mock files — local preview only
+*-mock.html
+tonearm-mock.html
+spindle-mock.html
+
 # jetbrains setting folder
 .idea/

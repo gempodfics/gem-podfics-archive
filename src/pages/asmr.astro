@@ -1,0 +1,692 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getPodficsByType, formatDuration } from '../lib/notion';
+
+const podfics = await getPodficsByType('ASMR');
+
+const sorted = [...podfics].sort((a, b) =>
+  b.createdTime.localeCompare(a.createdTime)
+);
+
+const allFandoms = [...new Set(sorted.flatMap(p => p.fandoms))].sort();
+const allDynamics = [...new Set(sorted.map(p => p.dynamic).filter(Boolean))].sort();
+const ratingOrder = ['General Audiences', 'Teen and Up', 'Mature', 'Explicit'];
+const allRatings = ratingOrder.filter(r => sorted.some(p => p.rating === r));
+const subtags = ['Fandom Inspired', 'Comfort', 'Non Fandom'];
+const allSubtags = subtags.filter(s => sorted.some(p => p.asmrSubtag === s));
+const durationOrder = [
+  '0-10 Minutes','10-20 Minutes','20-30 Minutes','30-45 Minutes','45-60 Minutes',
+  '1-1.5 Hours','1.5-2 Hours','2-2.5 Hours','2.5-3 Hours','3-3.5 Hours','3.5-4 Hours',
+  '4-4.5 Hours','4.5-5 Hours','5-5.5 Hours','5.5-6 Hours','6-6.5 Hours','6.5-7 Hours',
+  '7-7.5 Hours','7.5-8 Hours','8-8.5 Hours','8.5-9 Hours',
+];
+const allDurations = durationOrder.filter(d => sorted.some(p => p.podficLength === d));
+const hasMultiVoice = sorted.some(p => p.multiVoice === 'YES');
+
+const ZOOM_IDS = new Set([
+  '330bce89a9a481a78888caeea6eaed22', // High On Love
+  '330bce89a9a481c98810f0f9890bd058', // Voyeur (Spicy)
+]);
+const needsZoom = (id: string) => ZOOM_IDS.has(id.replace(/-/g, ''));
+
+function ratingLetter(r: string) {
+  if (r === 'General Audiences') return 'G';
+  if (r === 'Teen and Up') return 'T';
+  if (r === 'Mature') return 'M';
+  return 'E';
+}
+function ratingSlug(r: string) {
+  return r.toLowerCase().replace(/ /g, '-').replace(/&/g, '');
+}
+---
+
+<Layout title="ASMR Works" variant="collection">
+
+  <!-- ── Sidebar ── -->
+  <div slot="sidebar">
+    <div class="sidebar-handle" aria-hidden="true"></div>
+    <div class="sidebar-header">
+      <span class="sidebar-title">Filters</span>
+      <button class="sidebar-close" id="filter-close-btn" aria-label="Close filters">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+      </button>
+    </div>
+    <div class="sidebar-groups">
+      <div class="sidebar-group">
+        <button class="group-toggle" aria-expanded="false">
+          <span class="group-label">Fandom</span>
+          <svg class="group-chevron" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+        </button>
+        <div class="group-pills"><div class="filter-pills" data-filter="fandom">
+          <button class="filter-pill active" data-value="">All</button>
+          {allFandoms.map(f => <button class="filter-pill" data-value={f}>{f}</button>)}
+        </div></div>
+      </div>
+      <div class="sidebar-group">
+        <button class="group-toggle" aria-expanded="false">
+          <span class="group-label">Dynamic</span>
+          <svg class="group-chevron" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+        </button>
+        <div class="group-pills"><div class="filter-pills" data-filter="dynamic">
+          <button class="filter-pill active" data-value="">All</button>
+          {allDynamics.map(d => <button class="filter-pill" data-value={d}>{d}</button>)}
+        </div></div>
+      </div>
+      <div class="sidebar-group">
+        <button class="group-toggle" aria-expanded="false">
+          <span class="group-label">Rating</span>
+          <svg class="group-chevron" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+        </button>
+        <div class="group-pills"><div class="filter-pills" data-filter="rating">
+          <button class="filter-pill active" data-value="">All</button>
+          {allRatings.map(r => <button class="filter-pill" data-value={r}>{r}</button>)}
+        </div></div>
+      </div>
+      {allSubtags.length > 0 && (
+        <div class="sidebar-group">
+          <button class="group-toggle" aria-expanded="false">
+            <span class="group-label">Type</span>
+            <svg class="group-chevron" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+          </button>
+          <div class="group-pills"><div class="filter-pills" data-filter="subtag">
+            <button class="filter-pill active" data-value="">All</button>
+            {allSubtags.map(s => <button class="filter-pill" data-value={s}>{s}</button>)}
+          </div></div>
+        </div>
+      )}
+      {allDurations.length > 0 && (
+        <div class="sidebar-group">
+          <button class="group-toggle" aria-expanded="false">
+            <span class="group-label">Duration</span>
+            <svg class="group-chevron" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+          </button>
+          <div class="group-pills"><div class="filter-pills" data-filter="duration">
+            <button class="filter-pill active" data-value="">All</button>
+            {allDurations.map(d => <button class="filter-pill" data-value={d}>{d}</button>)}
+          </div></div>
+        </div>
+      )}
+      {hasMultiVoice && (
+        <div class="sidebar-group">
+          <button class="group-toggle" aria-expanded="false">
+            <span class="group-label">Voices</span>
+            <svg class="group-chevron" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+          </button>
+          <div class="group-pills"><div class="filter-pills" data-filter="multivoice">
+            <button class="filter-pill active" data-value="">All</button>
+            <button class="filter-pill" data-value="no">Solo</button>
+            <button class="filter-pill" data-value="yes">Multi-voice</button>
+          </div></div>
+        </div>
+      )}
+    </div>
+    <button class="clear-all-btn" id="clear-filters" style="visibility: hidden">Clear all filters</button>
+  </div>
+
+  <!-- ── Page content ── -->
+  <div class="page">
+
+    <div class="page-header">
+      <div class="header-top">
+        <h1 class="page-title">ASMR <em>Collection.</em></h1>
+        <button class="mobile-filter-btn" id="filter-open-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.25 5.61C6.27 8.2 10 13 10 13v6c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-6s3.72-4.8 5.74-7.39A.998.998 0 0 0 18.95 4H5.04a1 1 0 0 0-.79 1.61z"/></svg>
+          <span id="filter-btn-text">Filters</span>
+        </button>
+      </div>
+      <p class="work-count" id="work-count">Showing {sorted.length} works</p>
+    </div>
+
+    <!-- Sort + view toggle -->
+    <div class="controls-row">
+      <div class="sort-group">
+        <span class="sort-label">Sort</span>
+        <div class="sort-btns">
+          <button class="sort-btn active" id="sort-recent">Recent</button>
+          <button class="sort-btn" id="sort-alpha">Alphabetical</button>
+        </div>
+      </div>
+      <div class="view-toggle">
+        <button class="view-btn active" id="view-grid-btn" aria-label="Grid view">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 3h7v7H3V3zm0 11h7v7H3v-7zm11-11h7v7h-7V3zm0 11h7v7h-7v-7z"/></svg>
+        </button>
+        <button class="view-btn" id="view-list-btn" aria-label="List view">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- View container -->
+    <div id="view-container" data-view="grid">
+
+      <!-- Grid view -->
+      <div class="grid-view" id="podfic-grid">
+        {sorted.map((p, i) => (
+          <a
+            href={`/podfic/${p.id}`}
+            class="podfic-card"
+            data-id={p.id}
+            data-index={i}
+            data-title={p.title.toLowerCase()}
+            data-fandoms={p.fandoms.join('|').toLowerCase()}
+            data-dynamic={p.dynamic.toLowerCase()}
+            data-rating={p.rating.toLowerCase()}
+            data-subtag={p.asmrSubtag.toLowerCase()}
+            data-duration={p.podficLength.toLowerCase()}
+            data-multivoice={p.multiVoice === 'YES' ? 'yes' : 'no'}
+          >
+            <div class="vinyl-wrap">
+              <div class="vinyl-record-peek" aria-hidden="true">
+                <div class="record-center-dot"></div>
+              </div>
+              <div class="sleeve-container">
+                <div class="sleeve-art">
+                  {p.coverArtUrl ? (
+                    <img src={p.coverArtUrl} alt={p.title} class="sleeve-img" loading="lazy" />
+                  ) : (
+                    <div class="sleeve-placeholder"></div>
+                  )}
+                </div>
+                <span class={`rating-badge rating-${ratingSlug(p.rating)}`}>{ratingLetter(p.rating)}</span>
+              </div>
+            </div>
+            <div class="card-meta">
+              <span class="card-title">{p.title}</span>
+              <span class="card-fandom">{p.fandoms.join(', ')}{p.dynamic && ` · ${p.dynamic}`}</span>
+              <span class="card-original-work">Original Work</span>
+              {p.length && (
+                <span class="card-duration">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
+                  {formatDuration(p.length)}
+                </span>
+              )}
+            </div>
+          </a>
+        ))}
+      </div>
+
+      <!-- List view -->
+      <div class="list-view" id="podfic-list">
+        {sorted.map((p, i) => (
+          <a
+            href={`/podfic/${p.id}`}
+            class="list-row"
+            data-id={p.id}
+            data-index={i}
+            data-title={p.title.toLowerCase()}
+            data-fandoms={p.fandoms.join('|').toLowerCase()}
+            data-dynamic={p.dynamic.toLowerCase()}
+            data-rating={p.rating.toLowerCase()}
+            data-subtag={p.asmrSubtag.toLowerCase()}
+            data-duration={p.podficLength.toLowerCase()}
+            data-multivoice={p.multiVoice === 'YES' ? 'yes' : 'no'}
+          >
+            <div class="row-art">
+              <div class="row-record-peek" aria-hidden="true">
+                <div class="record-center-dot"></div>
+              </div>
+              <div class="row-sleeve-container">
+                <div class="row-sleeve-art">
+                  {p.coverArtUrl ? (
+                    <img src={p.coverArtUrl} alt={p.title} class="row-img" loading="lazy" />
+                  ) : (
+                    <div class="row-placeholder"></div>
+                  )}
+                </div>
+                <span class={`rating-badge rating-${ratingSlug(p.rating)}`}>{ratingLetter(p.rating)}</span>
+              </div>
+            </div>
+            <div class="row-info">
+              <span class="row-title">{p.title}</span>
+              {p.length && <span class="row-duration-mobile">{formatDuration(p.length)}</span>}
+              <div class="row-tags">
+                <span class="tag">{p.fandoms.join(', ')}{p.dynamic && ` · ${p.dynamic}`}</span>
+                {p.asmrSubtag && <span class="tag tag-subtag">{p.asmrSubtag}</span>}
+              </div>
+            </div>
+            <div class="row-stats">
+              {p.length && <span class="stat-duration">{formatDuration(p.length)}</span>}
+            </div>
+          </a>
+        ))}
+      </div>
+
+    </div>
+
+    <p class="empty-state" id="empty-state" style="display:none">No works match the selected filters.</p>
+  </div>
+</Layout>
+
+<style>
+  /* ── Page ── */
+  .page {
+    padding-top: 3rem;
+    padding-bottom: 6rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    max-width: 90rem;
+    margin: 0 auto;
+  }
+  @media (min-width: 1024px) {
+    .page { padding-left: 3rem; padding-right: 3rem; }
+  }
+
+  /* ── Header ── */
+  .page-header { margin-bottom: 1.75rem; }
+  .header-top {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 1rem; margin-bottom: 0.5rem;
+  }
+  .page-title {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800;
+    line-height: 1.1; color: var(--text-primary); margin: 0;
+  }
+  .page-title em { color: var(--accent-pink); font-style: italic; }
+  .work-count { font-size: 0.85rem; color: var(--text-muted); margin: 0; font-weight: 500; }
+
+  /* ── Mobile filter button ── */
+  .mobile-filter-btn {
+    display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0;
+    padding: 0.45rem 1rem; border-radius: 9999px;
+    border: 1px solid rgba(255,255,255,0.15); background: transparent;
+    color: var(--text-secondary); font-size: 0.8rem; font-weight: 600; cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s; margin-top: 0.2rem;
+  }
+  .mobile-filter-btn:hover, .mobile-filter-btn.has-filters {
+    border-color: var(--accent-pink); color: var(--accent-pink);
+    background: rgba(232, 88, 138, 0.08);
+  }
+  @media (min-width: 768px) { .mobile-filter-btn { display: none; } }
+
+  /* ── Controls row ── */
+  .controls-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem; margin-bottom: 2rem;
+  }
+  .sort-group { display: flex; align-items: center; gap: 1rem; }
+  .sort-label {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-muted); white-space: nowrap;
+  }
+  .sort-btns { display: flex; gap: 0.4rem; }
+  .sort-btn {
+    padding: 0.35rem 0.9rem; border-radius: 9999px;
+    border: 1px solid rgba(255,255,255,0.12); background: transparent;
+    color: var(--text-secondary); font-size: 0.8rem; font-weight: 600; cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  .sort-btn:hover { border-color: rgba(255,255,255,0.3); color: var(--text-primary); }
+  .sort-btn.active { background: var(--accent-pink); border-color: var(--accent-pink); color: #0E0A14; }
+
+  /* ── View toggle ── */
+  .view-toggle {
+    display: flex; gap: 0.25rem;
+    background: var(--bg-surface);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px; padding: 3px;
+  }
+  .view-btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 5px; border: none;
+    background: transparent; color: var(--text-muted); cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .view-btn:hover { color: var(--text-secondary); }
+  .view-btn.active { background: var(--bg-elevated); color: var(--accent-pink); }
+
+  /* ── View container toggle ── */
+  #view-container[data-view="list"] .grid-view { display: none; }
+  #view-container[data-view="grid"] .list-view { display: none; }
+
+  /* ── Grid view ── */
+  .grid-view {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem 1rem;
+  }
+  @media (min-width: 480px) { .grid-view { grid-template-columns: repeat(3, 1fr); } }
+  @media (min-width: 768px) { .grid-view { grid-template-columns: repeat(4, 1fr); gap: 2rem 1.25rem; } }
+  @media (min-width: 1024px) { .grid-view { grid-template-columns: repeat(5, 1fr); } }
+
+  /* ── Grid card ── */
+  .podfic-card {
+    text-decoration: none; display: flex; flex-direction: column;
+    gap: 0.65rem; position: relative; transition: transform 0.2s ease;
+  }
+  .podfic-card:hover { transform: translateY(-3px); }
+  .podfic-card.hidden, .list-row.hidden { display: none; }
+
+  .vinyl-wrap { position: relative; }
+  /* ── Sleeve + record peeking right (grid cards) ── */
+  .sleeve-container { position: relative; width: 74%; z-index: 2; }
+  .sleeve-art {
+    width: 100%; aspect-ratio: 1 / 1; border-radius: 6px; overflow: hidden;
+    background: var(--bg-surface);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06);
+    transition: box-shadow 0.2s ease;
+  }
+  .podfic-card:hover .sleeve-art {
+    box-shadow: 0 6px 24px rgba(0,0,0,0.6), 0 0 0 1.5px rgba(232,88,138,0.3);
+  }
+  .sleeve-img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s ease; }
+  .podfic-card:hover .sleeve-img { transform: scale(1.04); }
+  .sleeve-placeholder {
+    width: 100%; height: 100%;
+    background: radial-gradient(circle, var(--bg-elevated) 0%, var(--bg-surface) 100%);
+  }
+  .vinyl-record-peek {
+    position: absolute; top: 0; right: 0; width: 74%; aspect-ratio: 1 / 1;
+    border-radius: 50%; z-index: 1;
+    background:
+      radial-gradient(ellipse at 32% 28%, rgba(255,255,255,0.07) 0%, transparent 48%),
+      repeating-radial-gradient(circle at center, transparent, transparent 7px, rgba(255,255,255,0.04) 7px, rgba(255,255,255,0.04) 8px),
+      radial-gradient(circle at center, #521422 0%, #3d0e1a 30%, #280910 60%, #140407 100%);
+    box-shadow: 4px 4px 16px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(255,255,255,0.05);
+    transition: box-shadow 0.2s ease;
+  }
+  .podfic-card:hover .vinyl-record-peek {
+    box-shadow: 6px 6px 22px rgba(0,0,0,0.85), inset 0 0 0 1px rgba(255,255,255,0.07);
+  }
+  .record-center-dot {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 13%; aspect-ratio: 1 / 1; border-radius: 50%;
+    background: radial-gradient(circle, #3d1020 0%, #200810 100%);
+    border: 1.5px solid rgba(255,255,255,0.1);
+  }
+  .rating-badge {
+    position: absolute; top: -2px; right: -2px;
+    font-size: 0.6rem; font-weight: 800; line-height: 1;
+    padding: 0.22rem 0.38rem; border-radius: 0.25rem;
+    letter-spacing: 0.04em; color: #000; z-index: 3;
+  }
+  .rating-general-audiences { background-color: var(--rating-general); }
+  .rating-teen-and-up       { background-color: var(--rating-teen); }
+  .rating-mature            { background-color: var(--rating-mature); }
+  .rating-explicit          { background-color: var(--rating-explicit); color: #000; }
+  .card-meta { display: flex; flex-direction: column; gap: 0.2rem; padding-left: 0.1rem; }
+  .card-title {
+    font-size: 0.8rem; font-weight: 600; color: var(--text-primary); line-height: 1.3;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .card-fandom { font-size: 0.7rem; color: var(--text-muted); font-weight: 500; }
+  .card-original-work {
+    font-size: 0.6rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--text-muted); opacity: 0.6;
+  }
+  .card-duration { font-size: 0.7rem; color: var(--accent-pink); font-weight: 600; display: flex; align-items: center; gap: 0.25rem; }
+
+  /* ── List view ── */
+  .list-view { display: flex; flex-direction: column; gap: 0.5rem; }
+
+  .list-row {
+    display: flex; align-items: center; gap: 1rem;
+    padding: 0.75rem 1rem; border-radius: 0.75rem;
+    background: var(--bg-surface); border: 1px solid rgba(255,255,255,0.05);
+    text-decoration: none;
+    transition: background 0.15s, border-color 0.15s, transform 0.15s;
+  }
+  .list-row:hover {
+    background: var(--bg-elevated); border-color: rgba(232,88,138,0.2);
+    transform: translateX(3px);
+  }
+
+  /* ── Sleeve + record peeking right (list rows) ── */
+  .row-art { position: relative; flex-shrink: 0; width: 86px; height: 64px; }
+  @media (min-width: 768px) { .row-art { width: 103px; height: 76px; } }
+
+  .row-sleeve-container { position: relative; width: 74%; height: 100%; z-index: 2; }
+  .row-sleeve-art {
+    width: 100%; height: 100%; border-radius: 4px; overflow: hidden;
+    background: var(--bg-surface);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06);
+    transition: box-shadow 0.15s;
+  }
+  .list-row:hover .row-sleeve-art {
+    box-shadow: 0 4px 14px rgba(0,0,0,0.6), 0 0 0 1.5px rgba(232,88,138,0.3);
+  }
+  .row-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .row-placeholder {
+    width: 100%; height: 100%;
+    background: radial-gradient(circle, var(--bg-elevated) 0%, var(--bg-surface) 100%);
+  }
+  .row-record-peek {
+    position: absolute; top: 50%; right: 0; transform: translateY(-50%);
+    width: 74%; aspect-ratio: 1 / 1; border-radius: 50%; z-index: 1;
+    background:
+      radial-gradient(ellipse at 32% 28%, rgba(255,255,255,0.07) 0%, transparent 48%),
+      repeating-radial-gradient(circle at center, transparent, transparent 5px, rgba(255,255,255,0.04) 5px, rgba(255,255,255,0.04) 6px),
+      radial-gradient(circle at center, #521422 0%, #3d0e1a 30%, #280910 60%, #140407 100%);
+    box-shadow: 3px 3px 12px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(255,255,255,0.05);
+  }
+
+  .row-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.2rem; }
+  .row-title {
+    font-size: 0.95rem; font-weight: 700; color: var(--text-primary);
+    line-height: 1.3;
+  }
+
+  .row-duration-mobile { font-size: 0.75rem; color: var(--text-muted); }
+  @media (min-width: 768px) { .row-duration-mobile { display: none; } }
+
+  .row-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.1rem; }
+  .tag {
+    font-size: 0.65rem; font-weight: 600; color: var(--text-muted);
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 9999px; padding: 0.15rem 0.5rem; white-space: nowrap;
+  }
+  .tag-subtag {
+    color: var(--accent-pink); border-color: rgba(232,88,138,0.25);
+    background: rgba(232,88,138,0.08);
+  }
+
+  /* Right-side stats — desktop only */
+  .row-stats { display: none; flex-direction: column; align-items: flex-end; gap: 0.2rem; flex-shrink: 0; }
+  @media (min-width: 768px) { .row-stats { display: flex; } }
+  .stat-duration { font-size: 0.75rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+  /* ── Empty state ── */
+  .empty-state { text-align: center; color: var(--text-muted); font-size: 0.95rem; padding: 4rem 0; }
+
+  /* ── Sidebar content ── */
+  .sidebar-handle {
+    width: 2.5rem; height: 4px; background: rgba(255,255,255,0.15);
+    border-radius: 2px; margin: 0 auto 1rem;
+  }
+  @media (min-width: 768px) { .sidebar-handle { display: none; } }
+
+  .sidebar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+  .sidebar-title { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
+  .sidebar-close {
+    display: flex; align-items: center; justify-content: center;
+    background: none; border: none; color: var(--text-muted); cursor: pointer;
+    padding: 0.25rem; border-radius: 4px; transition: color 0.15s;
+  }
+  .sidebar-close:hover { color: var(--text-primary); }
+  @media (min-width: 768px) { .sidebar-close { display: none; } }
+
+  .sidebar-groups { display: flex; flex-direction: column; }
+  .sidebar-group { border-bottom: 1px solid rgba(255,255,255,0.06); }
+
+  .group-toggle {
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%; background: none; border: none; padding: 0.75rem 0;
+    cursor: default; pointer-events: none;
+  }
+  .group-label { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
+  .group-chevron { display: none; }
+  .group-pills { padding-bottom: 0.75rem; }
+
+  @media (min-width: 768px) {
+    .group-toggle { cursor: pointer; pointer-events: auto; transition: color 0.15s; }
+    .group-toggle:hover .group-label { color: var(--text-secondary); }
+    .group-chevron { display: block; color: var(--text-muted); flex-shrink: 0; transition: transform 0.2s ease; }
+    .sidebar-group.open .group-chevron { transform: rotate(180deg); }
+    .group-pills { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.25s ease; padding-bottom: 0; }
+    .group-pills > .filter-pills { overflow: hidden; }
+    .sidebar-group.open .group-pills { grid-template-rows: 1fr; padding-bottom: 0.75rem; }
+  }
+
+  .filter-pills { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .filter-pill {
+    padding: 0.28rem 0.75rem; border-radius: 9999px;
+    border: 1px solid rgba(255,255,255,0.1); background: transparent;
+    color: var(--text-secondary); font-size: 0.75rem; font-weight: 600; cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s; white-space: nowrap;
+  }
+  .filter-pill:hover { border-color: rgba(255,255,255,0.25); color: var(--text-primary); }
+  .filter-pill.active { background: var(--bg-elevated); border-color: var(--accent-pink); color: var(--accent-pink); }
+
+  .clear-all-btn {
+    display: block; width: 100%; margin-top: 2rem; padding: 0.5rem;
+    background: none; border: 1px solid rgba(232, 88, 138, 0.3);
+    border-radius: 9999px; color: var(--accent-pink); font-size: 0.75rem; font-weight: 600;
+    cursor: pointer; transition: background 0.15s, border-color 0.15s;
+  }
+  .clear-all-btn:hover { background: rgba(232, 88, 138, 0.08); border-color: var(--accent-pink); }
+</style>
+
+<script>
+  const gridEl = document.getElementById('podfic-grid') as HTMLElement;
+  const listEl = document.getElementById('podfic-list') as HTMLElement;
+  const viewContainer = document.getElementById('view-container') as HTMLElement;
+  const countEl = document.getElementById('work-count') as HTMLElement;
+  const emptyEl = document.getElementById('empty-state') as HTMLElement;
+  const sortRecent = document.getElementById('sort-recent') as HTMLButtonElement;
+  const sortAlpha = document.getElementById('sort-alpha') as HTMLButtonElement;
+  const clearBtn = document.getElementById('clear-filters') as HTMLButtonElement;
+  const filterBtnText = document.getElementById('filter-btn-text') as HTMLElement;
+  const filterOpenBtn = document.getElementById('filter-open-btn') as HTMLButtonElement;
+  const viewGridBtn = document.getElementById('view-grid-btn') as HTMLButtonElement;
+  const viewListBtn = document.getElementById('view-list-btn') as HTMLButtonElement;
+
+  const activeFilters: Record<string, Set<string>> = {
+    fandom: new Set(), dynamic: new Set(), rating: new Set(), subtag: new Set(), duration: new Set(), multivoice: new Set(),
+  };
+  let sortMode: 'recent' | 'alpha' = 'recent';
+
+  // ── View toggle ──
+  function setView(view: 'grid' | 'list') {
+    viewContainer.setAttribute('data-view', view);
+    viewGridBtn.classList.toggle('active', view === 'grid');
+    viewListBtn.classList.toggle('active', view === 'list');
+    localStorage.setItem('view-asmr', view);
+  }
+
+  viewGridBtn?.addEventListener('click', () => setView('grid'));
+  viewListBtn?.addEventListener('click', () => setView('list'));
+
+  // Restore saved preference (default: grid)
+  setView((localStorage.getItem('view-asmr') as 'grid' | 'list') ?? 'grid');
+
+  // ── Filter + sort ──
+  function updateFilterUI() {
+    const count = Object.values(activeFilters).filter(s => s.size > 0).length;
+    if (filterBtnText) filterBtnText.textContent = count > 0 ? `Filters (${count})` : 'Filters';
+    filterOpenBtn?.classList.toggle('has-filters', count > 0);
+    if (clearBtn) clearBtn.style.visibility = count > 0 ? 'visible' : 'hidden';
+  }
+
+  function applyFiltersAndSort() {
+    const seen = new Set<string>();
+    const visibleIds = new Set<string>();
+
+    document.querySelectorAll<HTMLElement>('[data-id][data-fandoms]').forEach(el => {
+      const id = el.dataset.id ?? '';
+      if (seen.has(id)) return;
+      seen.add(id);
+
+      const fandoms = (el.dataset.fandoms ?? '').split('|');
+      const passes =
+        (activeFilters.fandom.size === 0 || fandoms.some(f => activeFilters.fandom.has(f))) &&
+        (activeFilters.dynamic.size === 0 || activeFilters.dynamic.has(el.dataset.dynamic ?? '')) &&
+        (activeFilters.rating.size === 0 || activeFilters.rating.has(el.dataset.rating ?? '')) &&
+        (activeFilters.subtag.size === 0 || activeFilters.subtag.has(el.dataset.subtag ?? '')) &&
+        (activeFilters.duration.size === 0 || activeFilters.duration.has(el.dataset.duration ?? '')) &&
+        (activeFilters.multivoice.size === 0 || activeFilters.multivoice.has(el.dataset.multivoice ?? ''));
+
+      if (passes) visibleIds.add(id);
+    });
+
+    document.querySelectorAll<HTMLElement>('[data-id]').forEach(el => {
+      el.classList.toggle('hidden', !visibleIds.has(el.dataset.id ?? ''));
+    });
+
+    for (const container of [gridEl, listEl]) {
+      if (!container) continue;
+      const visible = Array.from(container.querySelectorAll<HTMLElement>('[data-id]:not(.hidden)'));
+      if (sortMode === 'alpha') {
+        visible.sort((a, b) => (a.dataset.title ?? '').localeCompare(b.dataset.title ?? ''));
+      } else {
+        visible.sort((a, b) => parseInt(a.dataset.index ?? '0') - parseInt(b.dataset.index ?? '0'));
+      }
+      for (const el of visible) container.appendChild(el);
+    }
+
+    const count = visibleIds.size;
+    countEl.textContent = `Showing ${count} work${count === 1 ? '' : 's'}`;
+    emptyEl.style.display = count === 0 ? 'block' : 'none';
+    updateFilterUI();
+  }
+
+  // ── Filter pills (multi-select) ──
+  document.querySelectorAll<HTMLElement>('.filter-pills').forEach(pillsEl => {
+    const filterKey = pillsEl.dataset.filter ?? '';
+    pillsEl.querySelectorAll<HTMLButtonElement>('.filter-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        const value = pill.dataset.value ?? '';
+        if (value === '') {
+          activeFilters[filterKey].clear();
+          pillsEl.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+        } else {
+          const lc = value.toLowerCase();
+          if (activeFilters[filterKey].has(lc)) {
+            activeFilters[filterKey].delete(lc);
+            pill.classList.remove('active');
+          } else {
+            activeFilters[filterKey].add(lc);
+            pill.classList.add('active');
+            const sidebarGroup = pillsEl.closest('.sidebar-group');
+            if (sidebarGroup) {
+              sidebarGroup.classList.add('open');
+              sidebarGroup.querySelector('.group-toggle')?.setAttribute('aria-expanded', 'true');
+            }
+          }
+          const allPill = pillsEl.querySelector<HTMLButtonElement>('.filter-pill[data-value=""]');
+          if (allPill) allPill.classList.toggle('active', activeFilters[filterKey].size === 0);
+        }
+        applyFiltersAndSort();
+      });
+    });
+  });
+
+  clearBtn?.addEventListener('click', () => {
+    Object.values(activeFilters).forEach(s => s.clear());
+    document.querySelectorAll<HTMLButtonElement>('.filter-pill').forEach(p => {
+      p.classList.toggle('active', p.dataset.value === '');
+    });
+    applyFiltersAndSort();
+  });
+
+  // ── Section toggles ──
+  document.querySelectorAll<HTMLButtonElement>('.group-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const group = btn.closest('.sidebar-group');
+      const isOpen = group?.classList.toggle('open') ?? false;
+      btn.setAttribute('aria-expanded', String(isOpen));
+    });
+  });
+
+  // ── Sort ──
+  sortRecent?.addEventListener('click', () => {
+    sortMode = 'recent';
+    sortRecent.classList.add('active'); sortAlpha.classList.remove('active');
+    applyFiltersAndSort();
+  });
+  sortAlpha?.addEventListener('click', () => {
+    sortMode = 'alpha';
+    sortAlpha.classList.add('active'); sortRecent.classList.remove('active');
+    applyFiltersAndSort();
+  });
+</script>

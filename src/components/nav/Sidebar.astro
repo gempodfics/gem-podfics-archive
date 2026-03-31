@@ -14,33 +14,32 @@ const socials = [
 ];
 
 const currentPath = Astro.url.pathname;
+
+function isActive(href: string) {
+  if (href === '/') return currentPath === '/';
+  return currentPath.startsWith(href);
+}
 ---
 
-<!-- Desktop Sidebar -->
-<aside class="sidebar">
-  <div class="sidebar-logo">
-    <a href="/">Gem Podfics</a>
+<!-- ── Desktop Sidebar ── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-top">
+    <a href="/" class="sidebar-logo" id="sidebar-logo">Gem Podfics</a>
+    <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle sidebar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" id="toggle-icon">
+        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+      </svg>
+    </button>
   </div>
 
   <nav class="sidebar-nav">
     {navItems.map(item => (
-      <a
-        href={item.href}
-        class={`nav-item ${currentPath === item.href || (item.href !== '/' && currentPath.startsWith(item.href)) ? 'active' : ''}`}
-      >
+      <a href={item.href} class={`nav-item ${isActive(item.href) ? 'active' : ''}`}>
         <span class="nav-icon">
-          {item.icon === 'home' && (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-          )}
-          {item.icon === 'one-shot' && (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
-          )}
-          {item.icon === 'multi' && (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/></svg>
-          )}
-          {item.icon === 'asmr' && (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1c-4.97 0-9 4.03-9 9v7c0 1.66 1.34 3 3 3h3v-8H5v-2c0-3.87 3.13-7 7-7s7 3.13 7 7v2h-4v8h3c1.66 0 3-1.34 3-3v-7c0-4.97-4.03-9-9-9z"/></svg>
-          )}
+          {item.icon === 'home' && <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>}
+          {item.icon === 'one-shot' && <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>}
+          {item.icon === 'multi' && <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/></svg>}
+          {item.icon === 'asmr' && <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>}
         </span>
         <span class="nav-label">{item.label}</span>
       </a>
@@ -50,7 +49,7 @@ const currentPath = Astro.url.pathname;
   <div class="sidebar-socials">
     {socials.map(s => (
       <a href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label} class="social-icon">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
           <path d={s.path} />
         </svg>
       </a>
@@ -58,74 +57,95 @@ const currentPath = Astro.url.pathname;
   </div>
 </aside>
 
-<!-- Mobile Header -->
-<header class="mobile-header">
-  <a href="/" class="mobile-logo">Gem Podfics</a>
-  <button class="hamburger" id="hamburger" aria-label="Open menu">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-  </button>
-</header>
-
-<!-- Mobile Drawer -->
-<div class="mobile-drawer" id="mobile-drawer">
-  <button class="drawer-close" id="drawer-close" aria-label="Close menu">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-  </button>
-  <nav class="drawer-nav">
-    {navItems.map(item => (
-      <a href={item.href} class={`drawer-item ${currentPath === item.href || (item.href !== '/' && currentPath.startsWith(item.href)) ? 'active' : ''}`}>
-        {item.label}
-      </a>
-    ))}
-  </nav>
-  <div class="drawer-socials">
-    {socials.map(s => (
-      <a href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label} class="social-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <path d={s.path} />
-        </svg>
-      </a>
-    ))}
-  </div>
-</div>
-
-<div class="drawer-overlay" id="drawer-overlay"></div>
+<!-- ── Mobile pill nav ── -->
+<nav class="mobile-pills" aria-label="Main navigation">
+  {navItems.map(item => (
+    <a href={item.href} class={`pill ${isActive(item.href) ? 'active' : ''}`}>
+      {item.label}
+    </a>
+  ))}
+</nav>
 
 <style>
-  /* ── Sidebar (desktop) ── */
+  /* ── Sidebar ── */
   .sidebar {
     display: none;
-    flex-direction: column;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 200px;
-    height: 100vh;
-    background: var(--bg-surface);
-    padding: 2rem 1.25rem;
-    z-index: 100;
-    border-right: 1px solid var(--bg-elevated);
   }
 
   @media (min-width: 768px) {
-    .sidebar { display: flex; }
-    .mobile-header { display: none; }
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 200px;
+      height: 100vh;
+      background: var(--bg-surface);
+      border-right: 1px solid var(--bg-elevated);
+      z-index: 100;
+      transition: width 0.25s ease;
+      overflow: hidden;
+    }
+
+    .sidebar.collapsed {
+      width: 64px;
+    }
   }
 
-  .sidebar-logo a {
+  .sidebar-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem 1rem 1.5rem 1.25rem;
+    min-height: 64px;
+    flex-shrink: 0;
+  }
+
+  .sidebar-logo {
     color: var(--accent-pink);
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 700;
     text-decoration: none;
-    letter-spacing: 0.02em;
-    display: block;
-    margin-bottom: 2.5rem;
+    white-space: nowrap;
+    overflow: hidden;
+    transition: opacity 0.2s ease, width 0.25s ease;
+  }
+
+  .sidebar.collapsed .sidebar-logo {
+    opacity: 0;
+    width: 0;
+    pointer-events: none;
+  }
+
+  .sidebar-toggle {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    border-radius: 4px;
+    transition: color 0.15s;
+  }
+
+  .sidebar-toggle:hover { color: var(--text-primary); }
+
+  .sidebar.collapsed .sidebar-toggle #toggle-icon {
+    transform: rotate(180deg);
+  }
+
+  #toggle-icon {
+    transition: transform 0.25s ease;
   }
 
   .sidebar-nav {
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
+    padding: 0 0.75rem;
     flex: 1;
   }
 
@@ -133,15 +153,17 @@ const currentPath = Astro.url.pathname;
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.6rem 0.75rem;
+    padding: 0.6rem 0.5rem;
     border-radius: 6px;
     color: var(--text-secondary);
     text-decoration: none;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 600;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     transition: color 0.15s, background 0.15s;
+    white-space: nowrap;
+    overflow: hidden;
   }
 
   .nav-item:hover {
@@ -154,148 +176,102 @@ const currentPath = Astro.url.pathname;
     background: var(--bg-elevated);
   }
 
-  .nav-icon { display: flex; align-items: center; flex-shrink: 0; }
+  .nav-icon {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .nav-label {
+    transition: opacity 0.2s ease;
+  }
+
+  .sidebar.collapsed .nav-label {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+  }
 
   .sidebar-socials {
     display: flex;
-    gap: 1rem;
-    padding-top: 1.5rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 1.25rem 1rem;
     border-top: 1px solid var(--bg-elevated);
+    transition: opacity 0.2s ease;
+  }
+
+  .sidebar.collapsed .sidebar-socials {
+    opacity: 0;
+    pointer-events: none;
   }
 
   .social-icon {
     color: var(--text-muted);
-    transition: color 0.15s;
     display: flex;
     align-items: center;
+    transition: color 0.15s;
   }
 
   .social-icon:hover { color: var(--accent-pink); }
 
-  /* ── Mobile Header ── */
-  .mobile-header {
+  /* ── Mobile pill nav ── */
+  .mobile-pills {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    gap: 0.5rem;
+    overflow-x: auto;
+    scrollbar-width: none;
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    height: 56px;
-    background: var(--bg-surface);
-    padding: 0 1.25rem;
     z-index: 100;
+    background: var(--bg-primary);
+    padding: 0.75rem 1rem;
     border-bottom: 1px solid var(--bg-elevated);
   }
 
-  .mobile-logo {
-    color: var(--accent-pink);
-    font-size: 1rem;
-    font-weight: 700;
-    text-decoration: none;
+  .mobile-pills::-webkit-scrollbar { display: none; }
+
+  @media (min-width: 768px) {
+    .mobile-pills { display: none; }
   }
 
-  .hamburger {
-    background: none;
-    border: none;
-    color: var(--text-primary);
-    cursor: pointer;
-    padding: 0.25rem;
-    display: flex;
-    align-items: center;
-  }
-
-  /* ── Mobile Drawer ── */
-  .mobile-drawer {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 260px;
-    height: 100vh;
-    background: var(--bg-surface);
-    z-index: 200;
-    padding: 1.5rem 1.25rem;
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-    transform: translateX(-100%);
-    transition: transform 0.25s ease;
-  }
-
-  .mobile-drawer.open { transform: translateX(0); }
-
-  .drawer-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.6);
-    z-index: 199;
-  }
-
-  .drawer-overlay.open { display: block; }
-
-  .drawer-close {
-    background: none;
-    border: none;
-    color: var(--text-secondary);
-    cursor: pointer;
-    align-self: flex-end;
-    padding: 0;
-    display: flex;
-  }
-
-  .drawer-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-
-  .drawer-item {
-    color: var(--text-secondary);
-    text-decoration: none;
-    font-size: 1rem;
-    font-weight: 600;
-    padding: 0.75rem 0.5rem;
-    border-radius: 6px;
-    transition: color 0.15s, background 0.15s;
-  }
-
-  .drawer-item:hover, .drawer-item.active {
-    color: var(--accent-pink);
-    background: var(--bg-elevated);
-  }
-
-  .drawer-socials {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    margin-top: auto;
-  }
-
-  .drawer-socials .social-icon {
-    color: var(--text-muted);
-    text-decoration: none;
+  .pill {
+    flex-shrink: 0;
+    padding: 0.4rem 1rem;
+    border-radius: 9999px;
     font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .pill:hover {
+    color: var(--text-primary);
+  }
+
+  .pill.active {
+    background: var(--accent-pink);
+    color: #fff;
   }
 </style>
 
 <script>
-  const hamburger = document.getElementById('hamburger');
-  const drawer = document.getElementById('mobile-drawer');
-  const overlay = document.getElementById('drawer-overlay');
-  const close = document.getElementById('drawer-close');
+  const sidebar = document.getElementById('sidebar');
+  const toggle = document.getElementById('sidebar-toggle');
 
-  function openDrawer() {
-    drawer?.classList.add('open');
-    overlay?.classList.add('open');
+  // Restore saved state
+  if (localStorage.getItem('sidebar-collapsed') === 'true') {
+    sidebar?.classList.add('collapsed');
+    document.body.classList.add('sidebar-collapsed');
   }
 
-  function closeDrawer() {
-    drawer?.classList.remove('open');
-    overlay?.classList.remove('open');
-  }
-
-  hamburger?.addEventListener('click', openDrawer);
-  close?.addEventListener('click', closeDrawer);
-  overlay?.addEventListener('click', closeDrawer);
+  toggle?.addEventListener('click', () => {
+    const isCollapsed = sidebar?.classList.toggle('collapsed');
+    document.body.classList.toggle('sidebar-collapsed', isCollapsed);
+    localStorage.setItem('sidebar-collapsed', String(isCollapsed));
+  });
 </script>

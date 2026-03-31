@@ -1,36 +1,915 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { getRecommendations, getCommissionedArt, formatDuration } from '../lib/notion';
+
+const recs = await getRecommendations();
+const commissionedArt = await getCommissionedArt();
+
+// These two artworks have a black border baked in — scale up slightly to fill the record
+const ZOOM_IDS = new Set([
+  '330bce89a9a481ca8371e09d668283ec', // Turning Point
+  '330bce89a9a48150b15afa4693a136b9', // If You Don't Know How To Blow, Blow For Me
+]);
+const needsZoom = (id: string) => ZOOM_IDS.has(id.replace(/-/g, ''));
 ---
 
-<Layout title="Gem Podfics">
-  <main class="coming-soon">
-    <h1>Gem Podfics</h1>
-    <p>Coming Soon</p>
+<Layout title="Gem Podfics" variant="home">
+  <main class="home">
+    <section class="hero">
+      <div class="hero-text">
+        <div class="hero-socials">
+          <a href="https://www.tumblr.com/blog/gemaesteria" target="_blank" rel="noopener noreferrer" aria-label="Tumblr" class="hero-social-link">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M14.563 24c-5.093 0-7.031-3.756-7.031-6.411V9.747H5.116V6.648c3.63-1.313 4.512-4.596 4.71-6.469C9.84.051 9.941 0 9.999 0h3.517v6.114h4.801v3.633h-4.82v7.47c.016 1.001.375 2.371 2.207 2.371h.09c.631-.02 1.486-.205 1.936-.419l1.156 3.425c-.436.636-2.4 1.374-4.156 1.404h-.178l.011.002z"/>
+            </svg>
+          </a>
+          <a href="https://archiveofourown.org/users/Danmei_Podfics_With_Gem/works" target="_blank" rel="noopener noreferrer" aria-label="AO3" class="hero-social-link">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M18.417 9.883c-.687 1.116-1.823 1.722-2.99 1.855-4.227.484-6.047-4.149-3.469-6.728 2.31-2.31 7.082-.9 7.005 2.899-.011.611-.166 1.357-.546 1.974zm-6.459-2.029c.142 3.596 4.764 3.682 5.687 1.054.815-2.324-1.12-4.199-3.19-3.897-1.523.221-2.553 1.411-2.497 2.843zM23.123 6.003c.284-.131.697-.412.837-.246.211.251-.459.475-.748.664-.918.6-1.731 1.227-2.477 2.049-.959 1.059-1.944 2.376-2.55 3.818.618.032 3.021.157 3.6 1.481.464 1.062-.387 2.156-1.32 2.627.663.414 1.81.945 1.745 1.898-.158 2.343-3.696 2.241-5.178.695-.244-.289-.358-.482-.25-.578.151-.134.326.186.676.476.225.187.377.251.572.354 1.301.683 3.339.403 3.478-.792.064-.554-.664-.955-1.217-1.204-.498-.224-1.514-.386-1.494-.952.02-.554.524-.45 1.03-.65.55-.217 1.004-.901 1.003-1.116-.005-.905-2.062-.888-3.221-.92-.275.606-.471 1.226-.692 2.158-.139.583-.151 1.897-.748 2.029-.737.164-1.014-.477-1.455-.991-.594-.69-1.436-1.637-1.942-2.223-3.033 1.002-5.392 2.091-8.256 3.712-1.311.742-2.063 1.59-2.545 1.354-.396-.194-.339-.633-.147-.887.393-.521.927-1.225 1.396-1.888.6-.849 1.054-1.667 1.373-2.445.692-1.688 1.23-4.72 1.475-5.859.088-.412.309-.348.322-.148.027.419-.237 2.047-.29 2.383-.436 2.781-.772 4.41-2.009 6.349 2.196-1.358 4.805-3.019 7.592-3.955C8.846 9.936 5.847 6.85 1.676 4.905 1.037 4.542 0 4.464 0 4.22c0-.271.781-.06 1.043.007 2.383.596 4.817 2.141 6.601 3.444 2.145 1.567 4.714 3.967 5.679 5.081.657-.226 2.286-.457 3.696-.496.752-1.58 2.55-4.018 4.788-5.442.413-.263.842-.594 1.316-.811zm-8.594 8.071c.423.428.742.934 1.11 1.398.174-.59.405-1.216.643-1.758-.619.082-1.281.203-1.753.36z"/>
+            </svg>
+          </a>
+          <a href="https://tiktok.com/@gem_asteria" target="_blank" rel="noopener noreferrer" aria-label="TikTok" class="hero-social-link">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
+            </svg>
+          </a>
+          <a href="https://www.instagram.com/gempodfics/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" class="hero-social-link">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M7.0301.084c-1.2768.0602-2.1487.264-2.911.5634-.7888.3075-1.4575.72-2.1228 1.3877-.6652.6677-1.075 1.3368-1.3802 2.127-.2954.7638-.4956 1.6365-.552 2.914-.0564 1.2775-.0689 1.6882-.0626 4.947.0062 3.2586.0206 3.6671.0825 4.9473.061 1.2765.264 2.1482.5635 2.9107.308.7889.72 1.4573 1.388 2.1228.6679.6655 1.3365 1.0743 2.1285 1.38.7632.295 1.6361.4961 2.9134.552 1.2773.056 1.6884.069 4.9462.0627 3.2578-.0062 3.668-.0207 4.9478-.0814 1.28-.0607 2.147-.2652 2.9098-.5633.7889-.3086 1.4578-.72 2.1228-1.3881.665-.6682 1.0745-1.3378 1.3795-2.1284.2957-.7632.4966-1.636.552-2.9124.056-1.2809.0692-1.6898.063-4.948-.0063-3.2583-.021-3.6668-.0817-4.9465-.0607-1.2797-.264-2.1487-.5633-2.9117-.3084-.7889-.72-1.4568-1.3876-2.1228C21.2982 1.33 20.628.9208 19.8378.6165 19.074.321 18.2017.1197 16.9244.0645 15.6471.0093 15.236-.005 11.977.0014 8.718.0076 8.31.0215 7.0301.0839m.1402 21.6932c-1.17-.0509-1.8053-.2453-2.2287-.408-.5606-.216-.96-.4771-1.3819-.895-.422-.4178-.6811-.8186-.9-1.378-.1644-.4234-.3624-1.058-.4171-2.228-.0595-1.2645-.072-1.6442-.079-4.848-.007-3.2037.0053-3.583.0607-4.848.05-1.169.2456-1.805.408-2.2282.216-.5613.4762-.96.895-1.3816.4188-.4217.8184-.6814 1.3783-.9003.423-.1651 1.0575-.3614 2.227-.4171 1.2655-.06 1.6447-.072 4.848-.079 3.2033-.007 3.5835.005 4.8495.0608 1.169.0508 1.8053.2445 2.228.408.5608.216.96.4754 1.3816.895.4217.4194.6816.8176.9005 1.3787.1653.4217.3617 1.056.4169 2.2263.0602 1.2655.0739 1.645.0796 4.848.0058 3.203-.0055 3.5834-.061 4.848-.051 1.17-.245 1.8055-.408 2.2294-.216.5604-.4763.96-.8954 1.3814-.419.4215-.8181.6811-1.3783.9-.4224.1649-1.0577.3617-2.2262.4174-1.2656.0595-1.6448.072-4.8493.079-3.2045.007-3.5825-.006-4.848-.0608M16.953 5.5864A1.44 1.44 0 1 0 18.39 4.144a1.44 1.44 0 0 0-1.437 1.4424M5.8385 12.012c.0067 3.4032 2.7706 6.1557 6.173 6.1493 3.4026-.0065 6.157-2.7701 6.1506-6.1733-.0065-3.4032-2.771-6.1565-6.174-6.1498-3.403.0067-6.156 2.771-6.1496 6.1738M8 12.0077a4 4 0 1 1 4.008 3.9921A3.9996 3.9996 0 0 1 8 12.0077"/>
+            </svg>
+          </a>
+          <a href="https://www.threads.net/@gempodfics" target="_blank" rel="noopener noreferrer" aria-label="Threads" class="hero-social-link">
+            <svg width="20" height="20" viewBox="0 0 192 192" fill="currentColor" aria-hidden="true">
+              <path d="M141.537 88.988a66.667 66.667 0 0 0-2.518-1.143c-1.482-27.307-16.403-42.94-41.457-43.1h-.34c-14.986 0-27.449 6.396-35.12 18.036l13.779 9.452c5.73-8.695 14.724-10.548 21.348-10.548h.229c8.249.053 14.474 2.452 18.503 7.129 2.932 3.405 4.893 8.111 5.864 14.05-7.314-1.244-15.224-1.626-23.68-1.14-23.82 1.371-39.134 15.264-38.105 34.568.522 9.792 5.4 18.216 13.735 23.719 7.047 4.652 16.124 6.927 25.557 6.412 12.458-.683 22.231-5.436 29.049-14.127 5.178-6.6 8.453-15.153 9.899-25.93 5.937 3.583 10.337 8.298 12.767 13.966 4.132 9.635 4.373 25.468-8.546 38.376-11.319 11.308-24.925 16.2-45.488 16.351-22.809-.169-40.06-7.484-51.275-21.742C35.236 139.966 29.808 120.682 29.605 96c.203-24.682 5.63-43.966 16.133-57.317C56.954 24.425 74.206 17.11 97.015 16.94c22.975.17 40.526 7.52 52.171 21.847 5.71 7.026 10.015 15.86 12.853 26.162l16.147-4.308c-3.44-12.68-8.853-23.606-16.219-32.668C147.036 9.607 125.202.195 97.105 0h-.113C68.912.195 47.331 9.642 32.934 28.033 20.006 44.839 13.329 67.617 13.105 95.932v.136c.224 28.315 6.9 51.092 19.829 67.898C47.331 182.358 68.912 191.805 96.992 192h.113c24.96-.173 42.554-6.708 57.048-21.189 18.963-18.945 18.392-42.692 12.142-57.27-4.484-10.454-13.033-18.944-24.758-24.553Zm-43.23 40.573c-10.426.57-19.511-4.106-19.98-13.577-.298-5.592 2.166-11.117 6.786-14.65 5.618-4.25 13.51-5.483 22.99-3.67l3.406.623-.058 3.46c-.27 16.17-9.203 27.162-13.144 27.237Z"/>
+            </svg>
+          </a>
+          <a href="https://bsky.app/profile/gempodfics.bsky.social" target="_blank" rel="noopener noreferrer" aria-label="Bluesky" class="hero-social-link">
+            <svg width="20" height="20" viewBox="0 0 600 530" fill="currentColor" aria-hidden="true">
+              <path d="M135.72 44.03C202.216 93.951 273.74 195.17 300 249.49c26.262-54.316 97.782-155.54 164.28-205.46C512.26 8.009 590-19.862 590 68.825c0 17.712-10.155 148.79-16.111 170.07-20.703 73.984-96.144 92.854-163.25 81.433 117.3 19.964 147.14 86.092 82.697 152.22-122.39 125.59-175.91-31.511-189.63-71.766-2.514-7.38-3.69-10.832-3.708-7.896-.017-2.936-1.193.516-3.707 7.896-13.714 40.255-67.233 197.36-189.63 71.766-64.444-66.128-34.605-132.26 82.697-152.22-67.108 11.421-142.55-7.45-163.25-81.433C20.15 217.613 10 86.532 10 68.825c0-88.687 77.742-60.816 125.72-24.795z"/>
+            </svg>
+          </a>
+        </div>
+        <h1 class="hero-tagline">
+          <span class="tagline-welcome">Welcome to</span>
+          <em>Gem's World.</em>
+        </h1>
+        <p class="hero-description">
+          My personal audio archive fueled by hyperfixations. Enjoy mostly queer podfics, fandom-inspired ASMR, and other audio gems that are spicy, sweet, and guaranteed to keep you up in more ways than one.
+        </p>
+        <p> My site is regularly updated with fully completed works. 
+        </p>
+        <p> Any in-progress works can be found on my Ao3 page.
+        </p>
+      </div>
+      <div class="hero-image">
+        <img src="/Hero.PNG" alt="Gem Podfics hero image" class="hero-img" />
+      </div>
+    </section>
+
+    <!-- Gem's Recs -->
+    <section class="recs-section">
+      <div class="section-header recs-header">
+        <div>
+          <h2 class="section-title">Gem's Recs</h2>
+          <div class="section-rule"></div>
+        </div>
+        <div class="recs-arrows">
+          <button class="scroll-arrow" id="recs-prev" aria-label="Scroll left">&#8249;</button>
+          <button class="scroll-arrow" id="recs-next" aria-label="Scroll right">&#8250;</button>
+        </div>
+      </div>
+
+      <div class="recs-row" id="recs-row">
+        {recs.map((rec) => (
+          <a href={rec.type === 'Multi Chapter' ? `/multi/${rec.id}` : `/podfic/${rec.id}`} class="rec-card">
+            <div class="vinyl-wrap">
+              <div class="vinyl-record-peek" aria-hidden="true">
+                <div class="record-center-dot"></div>
+              </div>
+              <div class="sleeve-container">
+                <div class="sleeve-art">
+                  {rec.coverArtUrl ? (
+                    <img src={rec.coverArtUrl} alt={rec.title} class="sleeve-img" />
+                  ) : (
+                    <div class="sleeve-placeholder"></div>
+                  )}
+                </div>
+                <span class={`rating-badge rating-${rec.rating.toLowerCase().replace(/ /g, '-').replace(/&/g, '')}`}>
+                  {rec.rating === 'General Audiences' ? 'G' :
+                   rec.rating === 'Teen and Up' ? 'T' :
+                   rec.rating === 'Mature' ? 'M' : 'E'}
+                </span>
+              </div>
+            </div>
+            <div class="rec-meta">
+              <span class="rec-title">{rec.title}</span>
+              <span class="rec-fandom">{rec.fandoms.join(', ')}{rec.dynamic && ` · ${rec.dynamic}`}</span>
+              {rec.length && (
+                <span class="rec-duration">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
+                  {formatDuration(rec.length)}
+                </span>
+              )}
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <!-- Fandoms Row -->
+    <section class="fandoms-section">
+      <div class="section-header">
+        <h2 class="section-title">Fandoms</h2>
+        <div class="section-rule"></div>
+      </div>
+
+      <div class="fandoms-row">
+        <a href="/fandom/tgcf" class="fandom-card">
+          <div class="fandom-img-wrap">
+            <img src="/TGCF.jpg" alt="Heaven Official's Blessing" class="fandom-img" />
+            <div class="fandom-overlay"></div>
+          </div>
+        </a>
+
+        <a href="/fandom/mdzs" class="fandom-card">
+          <div class="fandom-img-wrap">
+            <img src="/MDZS.jpg" alt="The Grand Master of Demonic Cultivation" class="fandom-img" />
+            <div class="fandom-overlay"></div>
+          </div>
+        </a>
+
+        <a href="/fandom/svsss" class="fandom-card">
+          <div class="fandom-img-wrap">
+            <img src="/SVSSS.jpg" alt="The Scum Villain's Self-Saving System" class="fandom-img" />
+            <div class="fandom-overlay"></div>
+          </div>
+        </a>
+
+        <a href="/fandom/erha" class="fandom-card">
+          <div class="fandom-img-wrap">
+            <img src="/ERHA.jpg" alt="The Husky and His White Cat Shizun" class="fandom-img" />
+            <div class="fandom-overlay"></div>
+          </div>
+        </a>
+
+        <a href="/fandom/wind-breaker" class="fandom-card">
+          <div class="fandom-img-wrap">
+            <img src="/Wind-Breaker.jpg" alt="Wind-Breaker" class="fandom-img" />
+            <div class="fandom-overlay"></div>
+          </div>
+        </a>
+
+        <a href="/fandom/lads" class="fandom-card">
+          <div class="fandom-img-wrap">
+            <img src="/LADs.jpg" alt="Love and Deepspace" class="fandom-img" />
+            <div class="fandom-overlay"></div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Collections Row -->
+    <section class="collections-section">
+      <div class="section-header">
+        <h2 class="section-title">Collections</h2>
+        <div class="section-rule"></div>
+      </div>
+
+      <div class="collections-row">
+        <a href="/one-shots" class="collection-card">
+          <div class="collection-img-wrap">
+            <img src="/One-shot.jpg" alt="One Shot Podfics" class="collection-img" />
+            <div class="collection-overlay"></div>
+          </div>
+          <span class="collection-label">One Shots</span>
+        </a>
+
+        <a href="/multi-chapter" class="collection-card">
+          <div class="collection-img-wrap">
+            <img src="/multi-chapter.jpg" alt="Multi-Chapter Podfics" class="collection-img" />
+            <div class="collection-overlay"></div>
+          </div>
+          <span class="collection-label">Multi-Chapter</span>
+        </a>
+
+        <a href="/asmr" class="collection-card">
+          <div class="collection-img-wrap">
+            <img src="/ASMR.jpg" alt="ASMR Collection" class="collection-img" />
+            <div class="collection-overlay"></div>
+          </div>
+          <span class="collection-label">ASMR</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- Commissioned Story Art -->
+    <section class="art-section">
+      <div class="section-header art-header">
+        <div>
+          <h2 class="section-title">Commissioned Story Art</h2>
+          <div class="section-rule"></div>
+        </div>
+        <div class="art-arrows">
+          <button class="scroll-arrow" id="art-prev" aria-label="Scroll left">&#8249;</button>
+          <button class="scroll-arrow" id="art-next" aria-label="Scroll right">&#8250;</button>
+        </div>
+      </div>
+
+      <div class="art-row" id="art-row">
+        {commissionedArt.map((item) => (
+          <a href={item.type === 'Multi Chapter' ? `/multi/${item.id}` : `/podfic/${item.id}`} class="art-card">
+            <div class="art-img-wrap">
+              <img src={item.commissionedArtUrl} alt={item.title} class="art-img" />
+              <div class="art-overlay"></div>
+            </div>
+            <span class="art-credit">Art by: {item.artistCredit}</span>
+          </a>
+        ))}
+      </div>
+    </section>
   </main>
 </Layout>
 
 <style>
-  .coming-soon {
+  .home {
+    padding-top: 8rem;
+    padding-bottom: 8rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    max-width: 90rem;
+    margin: 0 auto;
+  }
+
+  @media (min-width: 1024px) {
+    .home {
+      padding-left: 6rem;
+      padding-right: 6rem;
+    }
+  }
+
+  /* Hero: stacked on mobile, asymmetric 7/5 grid on desktop */
+  .hero {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3rem;
+    margin-bottom: 6rem;
+    align-items: start;
+  }
+
+  @media (min-width: 1024px) {
+    .hero {
+      grid-template-columns: 1fr auto;
+      gap: 4rem;
+      align-items: center;
+    }
+
+    .hero-image {
+      width: 250px;
+      height: 250px;
+    }
+  }
+
+  .hero-text {
     display: flex;
     flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .hero-tagline {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 800;
+    line-height: 1.15;
+    color: var(--text-primary);
+    margin: 0;
+  }
+
+  .tagline-welcome {
+    display: block;
+    font-size: 0.55em;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-style: normal;
+    letter-spacing: 0.01em;
+    margin-bottom: 0.1em;
+  }
+
+  .hero-tagline em {
+    color: var(--accent-pink);
+    font-style: italic;
+  }
+
+  .hero-description {
+    font-size: 1.05rem;
+    line-height: 1.75;
+    color: var(--text-primary);
+    margin: 0;
+    max-width: 42rem;
+  }
+
+  /* ── Hero social icons ── */
+  .hero-socials {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+  }
+
+  .hero-social-link {
+    display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
-    gap: 0.75rem;
-    text-align: center;
+    color: var(--text-muted);
+    text-decoration: none;
+    padding: 0.5rem;
+    border-radius: 9999px;
+    border: 1px solid transparent;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
   }
 
-  h1 {
+  .hero-social-link:hover {
     color: var(--accent-pink);
-    font-size: 2.5rem;
-    font-weight: 800;
-    margin: 0;
+    border-color: rgba(232, 88, 138, 0.25);
+    background: rgba(232, 88, 138, 0.06);
   }
 
-  p {
+  .hero-image {
+    display: block;
+    width: 190px;
+    height: 190px;
+    aspect-ratio: 1 / 1;
+    border-radius: 1.5rem;
+    overflow: hidden;
+    margin: 0 auto;
+  }
+
+  .hero-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* ── Gem's Recs ── */
+  .recs-section {
+    margin-bottom: 6rem;
+  }
+
+  .recs-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  /* Arrows: hidden on mobile (touch scroll), shown on desktop */
+  .recs-arrows {
+    display: none;
+    gap: 0.5rem;
+  }
+
+  .scroll-arrow {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: transparent;
     color: var(--text-secondary);
-    font-size: 1.1rem;
-    margin: 0;
-    letter-spacing: 0.05em;
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+
+  .scroll-arrow:hover:not(:disabled) {
+    border-color: var(--accent-pink);
+    color: var(--accent-pink);
+  }
+
+  .scroll-arrow:disabled {
+    opacity: 0.25;
+    cursor: default;
+  }
+
+  .recs-row {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 0.5rem;
+    /* Bleed to viewport edges; no right padding so 3rd card peeks naturally */
+    margin-left: -1.5rem;
+    margin-right: -1.5rem;
+    padding-left: 1.5rem;
+    padding-right: 0;
+  }
+
+  .recs-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .rec-card {
+    flex: 0 0 42vw;
+    max-width: 180px;
+    scroll-snap-align: start;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    position: relative;
+    transition: transform 0.2s ease;
+  }
+
+  .rec-card:hover {
+    transform: translateY(-3px);
+  }
+
+  /* ── Sleeve + record peeking right (homepage recs) ── */
+  .vinyl-wrap { position: relative; }
+
+  .sleeve-container { position: relative; width: 74%; z-index: 2; }
+  .sleeve-art {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--bg-surface);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06);
+    transition: box-shadow 0.2s ease;
+  }
+  .rec-card:hover .sleeve-art {
+    box-shadow: 0 6px 24px rgba(0,0,0,0.6), 0 0 0 1.5px rgba(232,88,138,0.3);
+  }
+  .sleeve-img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+    transition: transform 0.4s ease;
+  }
+  .rec-card:hover .sleeve-img { transform: scale(1.04); }
+  .sleeve-placeholder {
+    width: 100%; height: 100%;
+    background: radial-gradient(circle, var(--bg-elevated) 0%, var(--bg-surface) 100%);
+  }
+  .vinyl-record-peek {
+    position: absolute;
+    top: 0; right: 0;
+    width: 74%;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    z-index: 1;
+    background:
+      radial-gradient(ellipse at 32% 28%, rgba(255,255,255,0.07) 0%, transparent 48%),
+      repeating-radial-gradient(circle at center, transparent, transparent 7px, rgba(255,255,255,0.04) 7px, rgba(255,255,255,0.04) 8px),
+      radial-gradient(circle at center, #521422 0%, #3d0e1a 30%, #280910 60%, #140407 100%);
+    box-shadow: 4px 4px 16px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(255,255,255,0.05);
+    transition: box-shadow 0.2s ease;
+  }
+  .rec-card:hover .vinyl-record-peek {
+    box-shadow: 6px 6px 22px rgba(0,0,0,0.85), inset 0 0 0 1px rgba(255,255,255,0.07);
+  }
+  .record-center-dot {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 13%; aspect-ratio: 1 / 1; border-radius: 50%;
+    background: radial-gradient(circle, #3d1020 0%, #200810 100%);
+    border: 1.5px solid rgba(255,255,255,0.1);
+  }
+
+  .rating-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    font-size: 0.6rem;
+    font-weight: 800;
+    line-height: 1;
+    padding: 0.22rem 0.38rem;
+    border-radius: 0.25rem;
+    letter-spacing: 0.04em;
+    color: #000;
+    z-index: 3;
+  }
+
+  .rating-general-audiences { background-color: var(--rating-general); }
+  .rating-teen-and-up       { background-color: var(--rating-teen); }
+  .rating-mature            { background-color: var(--rating-mature); }
+  .rating-explicit          { background-color: var(--rating-explicit); color: #000; }
+
+  .rec-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding-left: 0.1rem;
+  }
+
+  .rec-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .rec-fandom {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  .rec-duration {
+    font-size: 0.7rem;
+    color: var(--accent-pink);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  @media (min-width: 768px) {
+    .recs-arrows {
+      display: flex;
+    }
+
+    .recs-row {
+      margin-left: 0;
+      margin-right: 0;
+      padding-left: 0;
+      padding-right: 0;
+    }
+
+    .rec-card {
+      flex: 0 0 200px;
+    }
+  }
+
+  /* ── Fandoms ── */
+  .fandoms-section {
+    margin-bottom: 6rem;
+  }
+
+  /* Mobile: horizontal scroll showing ~2 cards + peek */
+  .fandoms-row {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 0.5rem;
+    margin-left: -1.5rem;
+    margin-right: -1.5rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .fandoms-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .fandom-card {
+    flex: 0 0 42vw;
+    max-width: 200px;
+    scroll-snap-align: start;
+    text-decoration: none;
+    display: block;
+    transition: transform 0.2s ease;
+  }
+
+  .fandom-card:hover {
+    transform: translateY(-3px);
+  }
+
+  .fandom-img-wrap {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  .fandom-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.35s ease;
+  }
+
+  .fandom-card:hover .fandom-img {
+    transform: scale(1.04);
+  }
+
+  .fandom-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0);
+    transition: background 0.25s ease;
+  }
+
+  .fandom-card:hover .fandom-overlay {
+    background: rgba(232, 88, 138, 0.08);
+  }
+
+  /* Desktop: 3-col × 2-row grid */
+  @media (min-width: 768px) {
+    .fandoms-row {
+      display: grid;
+      grid-template-columns: repeat(3, 200px);
+      overflow-x: visible;
+      margin-left: 0;
+      margin-right: 0;
+      padding-left: 0;
+      padding-right: 0;
+      gap: 1.5rem;
+    }
+
+    .fandom-card {
+      flex: unset;
+      max-width: unset;
+    }
+  }
+
+  /* ── Collections ── */
+  .collections-section {
+    margin-bottom: 6rem;
+  }
+
+  .section-header {
+    margin-bottom: 2rem;
+  }
+
+  .section-title {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 0.6rem 0;
+  }
+
+  .section-rule {
+    width: 3rem;
+    height: 3px;
+    background-color: var(--accent-pink);
+    border-radius: 2px;
+  }
+
+  /* Mobile: horizontal scroll showing ~1.5 cards */
+  .collections-row {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 0.5rem;
+    /* Bleed left/right to match page padding so cards sit flush */
+    margin-left: -1.5rem;
+    margin-right: -1.5rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .collections-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .collection-card {
+    flex: 0 0 42vw;
+    max-width: 200px;
+    scroll-snap-align: start;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    transition: transform 0.2s ease;
+  }
+
+  .collection-card:hover {
+    transform: translateY(-3px);
+  }
+
+  .collection-img-wrap {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  .collection-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.35s ease;
+  }
+
+  .collection-card:hover .collection-img {
+    transform: scale(1.04);
+  }
+
+  .collection-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0);
+    transition: background 0.25s ease;
+  }
+
+  .collection-card:hover .collection-overlay {
+    background: rgba(232, 88, 138, 0.08);
+  }
+
+  .collection-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    padding-left: 0.1rem;
+    letter-spacing: 0.01em;
+  }
+
+  /* Desktop: fixed-width 3-column grid, left-aligned */
+  @media (min-width: 768px) {
+    .collections-row {
+      display: grid;
+      grid-template-columns: repeat(3, 200px);
+      overflow-x: visible;
+      margin-left: 0;
+      margin-right: 0;
+      padding-left: 0;
+      padding-right: 0;
+      gap: 1.5rem;
+    }
+
+    .collection-card {
+      flex: unset;
+      max-width: unset;
+    }
+  }
+
+  /* ── Commissioned Story Art ── */
+  .art-section {
+    margin-bottom: 6rem;
+  }
+
+  .art-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .art-arrows {
+    display: none;
+    gap: 0.5rem;
+  }
+
+  @media (min-width: 768px) {
+    .art-arrows {
+      display: flex;
+    }
+  }
+
+  .art-row {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 0.5rem;
+    margin-left: -1.5rem;
+    margin-right: -1.5rem;
+    padding-left: 1.5rem;
+    padding-right: 0;
+  }
+
+  .art-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .art-card {
+    flex: 0 0 42vw;
+    max-width: 200px;
+    scroll-snap-align: start;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: transform 0.2s ease;
+  }
+
+  .art-card:hover {
+    transform: translateY(-3px);
+  }
+
+  .art-img-wrap {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  .art-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.35s ease;
+  }
+
+  .art-card:hover .art-img {
+    transform: scale(1.04);
+  }
+
+  .art-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0);
+    transition: background 0.25s ease;
+  }
+
+  .art-card:hover .art-overlay {
+    background: rgba(232, 88, 138, 0.08);
+  }
+
+  .art-credit {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    padding-left: 0.1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  @media (min-width: 768px) {
+    .art-row {
+      margin-left: 0;
+      margin-right: 0;
+      padding-left: 0;
+      padding-right: 0;
+    }
+
+    .art-card {
+      flex: 0 0 200px;
+    }
   }
 </style>
+
+<script>
+  const row = document.getElementById('recs-row') as HTMLElement | null;
+  const prevBtn = document.getElementById('recs-prev') as HTMLButtonElement | null;
+  const nextBtn = document.getElementById('recs-next') as HTMLButtonElement | null;
+
+  const SCROLL_AMOUNT = 160 * 3 + 16 * 2; // ~3 cards + gaps
+
+  function updateArrows() {
+    if (!row || !prevBtn || !nextBtn) return;
+    prevBtn.disabled = row.scrollLeft <= 0;
+    nextBtn.disabled = row.scrollLeft + row.clientWidth >= row.scrollWidth - 1;
+  }
+
+  prevBtn?.addEventListener('click', () => {
+    row?.scrollBy({ left: -SCROLL_AMOUNT, behavior: 'smooth' });
+  });
+
+  nextBtn?.addEventListener('click', () => {
+    row?.scrollBy({ left: SCROLL_AMOUNT, behavior: 'smooth' });
+  });
+
+  row?.addEventListener('scroll', updateArrows, { passive: true });
+
+  // Set initial state once DOM is ready
+  updateArrows();
+
+  //  Commissioned Story Art arrows
+  const artRow = document.getElementById('art-row') as HTMLElement | null;
+  const artPrev = document.getElementById('art-prev') as HTMLButtonElement | null;
+  const artNext = document.getElementById('art-next') as HTMLButtonElement | null;
+
+  function updateArtArrows() {
+    if (!artRow || !artPrev || !artNext) return;
+    artPrev.disabled = artRow.scrollLeft <= 0;
+    artNext.disabled = artRow.scrollLeft + artRow.clientWidth >= artRow.scrollWidth - 1;
+  }
+
+  artPrev?.addEventListener('click', () => {
+    artRow?.scrollBy({ left: -SCROLL_AMOUNT, behavior: 'smooth' });
+  });
+
+  artNext?.addEventListener('click', () => {
+    artRow?.scrollBy({ left: SCROLL_AMOUNT, behavior: 'smooth' });
+  });
+
+  artRow?.addEventListener('scroll', updateArtArrows, { passive: true });
+  updateArtArrows();
+</script>
