@@ -1277,7 +1277,7 @@ function ratingLabel(r: string) {
   }
 </style>
 
-<script define:vars={{ chapters, hasAudio }}>
+<script define:vars={{ chapters, hasAudio, coverImg, pageTitle: p.title }}>
   // ── Element refs ──
   const mcPage       = document.getElementById('mc-page');
   const disc         = document.getElementById('vinyl-disc');
@@ -1391,6 +1391,20 @@ function ratingLabel(r: string) {
     if (playBtn) playBtn.disabled = true;
   } else {
 
+    // ── Media Session API (lock screen / now playing widget) ──
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: chapters[0]?.chapterName || pageTitle,
+        artist: 'Gem Asteria',
+        album: pageTitle,
+        artwork: coverImg ? [{ src: coverImg, sizes: '512x512' }] : [],
+      });
+      navigator.mediaSession.setActionHandler('play',  () => { audio.play();  setPlaying(true);  });
+      navigator.mediaSession.setActionHandler('pause', () => { audio.pause(); setPlaying(false); });
+      navigator.mediaSession.setActionHandler('seekbackward', () => { audio.currentTime = Math.max(0, audio.currentTime - 15); });
+      navigator.mediaSession.setActionHandler('seekforward',  () => { audio.currentTime = Math.min(audio.duration, audio.currentTime + 15); });
+    }
+
     // ── setPlaying ──
     function setPlaying(playing) {
       if (playing) {
@@ -1440,6 +1454,16 @@ function ratingLabel(r: string) {
 
       updateSheetTitle(ch.chapterName);
       updateChapterHighlight(idx);
+
+      // Update lock screen now-playing widget for this chapter
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: ch.chapterName || pageTitle,
+          artist: 'Gem Asteria',
+          album: pageTitle,
+          artwork: coverImg ? [{ src: coverImg, sizes: '512x512' }] : [],
+        });
+      }
 
       if (!autoplay) return;
 

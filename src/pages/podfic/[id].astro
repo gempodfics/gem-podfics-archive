@@ -1121,7 +1121,7 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
   }
 </style>
 
-<script define:vars={{ CIRCUMFERENCE, hasAudio }}>
+<script define:vars={{ CIRCUMFERENCE, hasAudio, coverImg, pageTitle: p.title }}>
   // ── Element refs ──
   const playerPage   = document.getElementById('player-page');
   const disc         = document.getElementById('vinyl-disc');
@@ -1186,6 +1186,20 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
       tonearm.classList.remove('raised');
       tonearm.classList.add('on-groove');
       setTimeout(() => { if (callback) callback(); }, 900);
+    }
+
+    // ── Media Session API (lock screen / now playing widget) ──
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: pageTitle,
+        artist: 'Gem Asteria',
+        album: 'Gem Podfics',
+        artwork: coverImg ? [{ src: coverImg, sizes: '512x512' }] : [],
+      });
+      navigator.mediaSession.setActionHandler('play',  () => { audio.play();  setPlaying(true);  });
+      navigator.mediaSession.setActionHandler('pause', () => { audio.pause(); setPlaying(false); });
+      navigator.mediaSession.setActionHandler('seekbackward', () => { audio.currentTime = Math.max(0, audio.currentTime - 15); });
+      navigator.mediaSession.setActionHandler('seekforward',  () => { audio.currentTime = Math.min(audio.duration, audio.currentTime + 15); });
     }
 
     // ── Sync play/pause UI across all buttons ──
