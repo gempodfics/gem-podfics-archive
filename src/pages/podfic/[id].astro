@@ -152,6 +152,11 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
 
       <!-- Sheet title (mobile only) -->
       <div class="sheet-title-row">
+        <button class="sheet-back-btn" onclick="history.back()" aria-label="Go back">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+          </svg>
+        </button>
         <div class="sheet-title-marquee" id="sheet-title-marquee">
           <span class="sheet-title-text" id="sheet-title-text">{p.title}</span>
         </div>
@@ -875,12 +880,29 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
      ══════════════════════════════════════════════ */
   .sheet-title-row {
     display: none; /* shown on mobile via media query */
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     gap: 0.5rem;
     width: 100%;
-    padding: 0.25rem 1.25rem 0;
-    text-align: center;
+    padding: 0.25rem 0.75rem 0;
+  }
+  .sheet-back-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  .sheet-back-btn:hover {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
   }
   .sheet-title-marquee {
     overflow: hidden;
@@ -1185,7 +1207,7 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
     function landArm(callback) {
       tonearm.classList.remove('raised');
       tonearm.classList.add('on-groove');
-      setTimeout(() => { if (callback) callback(); }, 900);
+      setTimeout(() => { if (callback) callback(); }, 600);
     }
 
     // ── Media Session API (lock screen / now playing widget) ──
@@ -1259,8 +1281,16 @@ const CIRCUMFERENCE = 2 * Math.PI * 94;
     // ── Content play button (mobile State 1 → State 2) ──
     contentPlayBtn?.addEventListener('click', () => {
       openSheet();
-      // Small delay so the sheet animation starts before arm swings
-      setTimeout(() => togglePlayback(), 120);
+      // Play immediately within the gesture context — setTimeout breaks mobile autoplay
+      if (!armLanded) {
+        armLanded = true;
+        hasStarted = true;
+        tonearm.classList.remove('raised');
+        tonearm.classList.add('on-groove');
+        audio.play().then(() => setPlaying(true)).catch(e => console.error('Playback failed:', e));
+      } else {
+        togglePlayback();
+      }
     });
 
     // ── Main turntable play button ──
