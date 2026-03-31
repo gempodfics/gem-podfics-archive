@@ -58,7 +58,9 @@ const needsZoom = (id: string) => ZOOM_IDS.has(id.replace(/-/g, ''));
         </p>
         <p> My site is regularly updated with fully completed works. 
         </p>
-        <p> Any in-progress works can be found on my Ao3 page.
+        <p> Any in-progress works can be found on my <a href="https://archiveofourown.org/users/Danmei_Podfics_With_Gem/works" target="_blank" rel="noopener" class="hero-inline-link">Ao3 page</a>.
+        </p>
+        <p> For inquiries, email <a href="mailto:gemasteria22@gmail.com" class="hero-inline-link">gemasteria22@gmail.com</a>
         </p>
       </div>
       <div class="hero-image">
@@ -307,6 +309,18 @@ const needsZoom = (id: string) => ZOOM_IDS.has(id.replace(/-/g, ''));
     max-width: 42rem;
   }
 
+  .hero-inline-link {
+    color: var(--accent-pink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: rgba(232,88,138,0.4);
+    transition: color 0.15s, text-decoration-color 0.15s;
+  }
+  .hero-inline-link:hover {
+    color: var(--accent-pink-hover);
+    text-decoration-color: var(--accent-pink-hover);
+  }
+
   /* ── Hero social icons ── */
   .hero-socials {
     display: flex;
@@ -472,9 +486,16 @@ const needsZoom = (id: string) => ZOOM_IDS.has(id.replace(/-/g, ''));
   }
   .record-center-dot {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    width: 13%; aspect-ratio: 1 / 1; border-radius: 50%;
-    background: radial-gradient(circle, #3d1020 0%, #200810 100%);
-    border: 1.5px solid rgba(255,255,255,0.1);
+    width: 40%; aspect-ratio: 1 / 1; border-radius: 50%;
+    background: radial-gradient(circle, var(--accent-pink) 0%, #c0406a 55%, #8b1f3f 100%);
+    border: 1.5px solid rgba(255,255,255,0.12);
+    box-shadow: 0 0 10px rgba(232,88,138,0.45);
+  }
+  .record-center-dot::after {
+    content: '';
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 22%; aspect-ratio: 1 / 1; border-radius: 50%;
+    background: var(--bg-primary);
   }
 
   .rating-badge {
