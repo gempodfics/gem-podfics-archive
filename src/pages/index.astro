@@ -39,7 +39,10 @@ const needsZoom = (id: string) => ZOOM_IDS.has(id.replace(/-/g, ''));
             </svg>
           </a>
         </div>
-        <h1 class="hero-tagline">Gem <em>Podfics.</em></h1>
+        <h1 class="hero-tagline">
+          <span class="tagline-welcome">Welcome to</span>
+          <em>Gem's World.</em>
+        </h1>
         <p class="hero-description">
           My personal audio archive fueled by hyperfixations. Enjoy mostly queer podfics, fandom-inspired ASMR, and other audio gems that are spicy, sweet, and guaranteed to keep you up in more ways than one.
         </p>
@@ -259,11 +262,22 @@ const needsZoom = (id: string) => ZOOM_IDS.has(id.replace(/-/g, ''));
   }
 
   .hero-tagline {
+    font-family: 'Georgia', 'Times New Roman', serif;
     font-size: clamp(2.5rem, 6vw, 4.5rem);
     font-weight: 800;
-    line-height: 1.1;
+    line-height: 1.15;
     color: var(--text-primary);
     margin: 0;
+  }
+
+  .tagline-welcome {
+    display: block;
+    font-size: 0.55em;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-style: normal;
+    letter-spacing: 0.01em;
+    margin-bottom: 0.1em;
   }
 
   .hero-tagline em {
