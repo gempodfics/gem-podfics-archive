@@ -145,6 +145,7 @@ function mapPodfic(page: any) {
     collaborators: text(props["Collaborators"]),
     podficLength: select(props["Podfic Length"]),
     totalDuration: text(props["Total Duration"]),
+    chapterOrder: props["Chapter Order"]?.number ?? null,
   };
 }
 
@@ -159,7 +160,13 @@ export async function getChaptersByTitle(title: string): Promise<Podfic[]> {
   const all = await getAllPodfics();
   return all
     .filter(p => p.type === 'Multi Chapter' && p.title.trim() === title.trim())
-    .sort((a, b) => a.chapterName.localeCompare(b.chapterName));
+    .sort((a, b) => {
+      // Sort by Chapter Order number if available; fall back to chapter name
+      if (a.chapterOrder !== null && b.chapterOrder !== null) return a.chapterOrder - b.chapterOrder;
+      if (a.chapterOrder !== null) return -1;
+      if (b.chapterOrder !== null) return 1;
+      return a.chapterName.localeCompare(b.chapterName);
+    });
 }
 
 // Resolves an archive.org/details URL to a direct MP3 download URL via the IA metadata API.
