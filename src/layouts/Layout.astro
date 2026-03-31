@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import TopBar from '../components/nav/TopBar.astro';
+import { Analytics } from '@vercel/analytics/astro';
 
 interface Props {
   title?: string;
@@ -38,6 +39,7 @@ const isCollection = variant === 'collection';
         <slot />
       </main>
     )}
+    <Analytics />
   </body>
 </html>
 
