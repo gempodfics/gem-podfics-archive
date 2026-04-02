@@ -33,3 +33,4 @@ spindle-mock.html
 
 # jetbrains setting folder
 .idea/
+.vercel

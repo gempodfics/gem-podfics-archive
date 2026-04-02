@@ -899,7 +899,7 @@ function ratingLabel(r: string) {
   }
   .tonearm {
     transform-origin: 26px 10px;
-    transition: transform 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .tonearm.raised   { transform: rotate(-75deg); }
   .tonearm.on-groove { transform: rotate(0deg); }
@@ -1437,10 +1437,10 @@ function ratingLabel(r: string) {
       }
     }
 
-    // How many ms after the arm starts swinging (0.85s = 850ms total) before audio begins.
+    // How many ms after the arm starts swinging (0.55s = 550ms total) before audio begins.
     // Lower = audio plays earlier relative to the needle hitting the record.
-    // Sweet spot: 400–600ms. Set to 0 for instant audio on arm-start.
-    const ARM_AUDIO_DELAY_MS = 500;
+    // Sweet spot: 300–450ms. Set to 0 for instant audio on arm-start.
+    const ARM_AUDIO_DELAY_MS = 300;
 
     function landArm(callback) {
       tonearm.classList.remove('raised');
