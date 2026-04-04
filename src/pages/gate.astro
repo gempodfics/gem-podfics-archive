@@ -88,8 +88,7 @@
       .vinyl-record {
         position: absolute;
         right: 0;
-        top: 50%;
-        transform: translateY(-50%);
+        top: 10px; /* (190px container - 170px element) / 2 */
         width: 170px;
         height: 170px;
         border-radius: 50%;
@@ -147,8 +146,8 @@
       }
 
       @keyframes spin {
-        from { transform: translateY(-50%) rotate(0deg); }
-        to   { transform: translateY(-50%) rotate(360deg); }
+        from { transform: rotate(0deg); }
+        to   { transform: rotate(360deg); }
       }
 
       /* Sleeve — sits in front */
@@ -295,6 +294,7 @@
         .gate-card { gap: 1.4rem; }
         .artwork-wrap { width: 200px; height: 165px; }
         .sleeve, .vinyl-record { width: 148px; height: 148px; }
+        .vinyl-record { top: 8px; } /* (165px - 148px) / 2 */
       }
     </style>
   </head>
